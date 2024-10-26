@@ -28,17 +28,6 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: version
-    attributes:
-      label: 版本
-      description: 您现在使用的是最新版吗
-      options:
-        - 最新测试版
-        - 最新稳定版
-      default: 0
-    validations:
-      required: true
-  - type: dropdown
     id: browsers
     attributes:
       label: 你在软件的哪个方面遇到了问题？
@@ -72,6 +61,17 @@ body:
         - 是
         - 否
     default: 0
+    validations:
+      required: true
+        - type: dropdown
+    id: version
+    attributes:
+      label: 版本
+      description: 您现在使用的是最新版吗
+      options:
+        - 最新测试版
+        - 最新稳定版
+      default: 0
     validations:
       required: true
   - type: textarea
