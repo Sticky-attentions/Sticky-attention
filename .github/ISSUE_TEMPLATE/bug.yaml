@@ -27,16 +27,19 @@ body:
       value: "例子：我发现我点击XXXX后出现了bug!"
     validations:
       required: true
-  - type: dropdown
-    id: browsers
+
+   - type: dropdown
+    id: version
     attributes:
-      label: 你在软件的哪个方面遇到了问题？
-      multiple: true
+      label: 版本
+      description: 您现在使用的是最新版吗
       options:
-        - 设置
-        - 主界面
-        - 编辑作业
-        - 其他
+        - 最新测试版
+        - 最新稳定版
+      default: 0
+    validations:
+      required: true
+  
     - type: dropdown
     id: system
     attributes:
@@ -63,17 +66,16 @@ body:
     default: 0
     validations:
       required: true
-        - type: dropdown
-    id: version
+    - type: dropdown
+    id: browsers
     attributes:
-      label: 版本
-      description: 您现在使用的是最新版吗
+      label: 你在软件的哪个方面遇到了问题？
+      multiple: true
       options:
-        - 最新测试版
-        - 最新稳定版
-      default: 0
-    validations:
-      required: true
+        - 设置
+        - 主界面
+        - 编辑作业
+        - 其他
   - type: textarea
     id: logs
     attributes:
