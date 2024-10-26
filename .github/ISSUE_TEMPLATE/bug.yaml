@@ -1,7 +1,7 @@
 name: BUG
 description: 提交BUG。
 title: "[Bug]: "
-labels: ["BUG", "待查看","BUG"]
+labels: ["BUG", "待查看","bug"]
 projects: ["Sticky-attention"]
 assignees:
   - jizilin6732
