@@ -33,8 +33,8 @@ body:
       label: 版本
       description: What version of our software are you running?
       options:
-        - 稳定版
-        - 测试版
+        - 1.稳定版
+        - 2.测试版
       default: 0
     validations:
       required: true
