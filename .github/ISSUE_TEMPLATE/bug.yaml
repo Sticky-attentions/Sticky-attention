@@ -15,7 +15,7 @@ body:
     attributes:
       label: 联系方式
       description: 我们可能需要向你更加询问了解Sa里您碰到的问题，你可以选择不填写（QQ号,邮箱....）
-      placeholder: ex. xxxxxxx@qq.com
+      placeholder: xxxxxxx@qq.com
     validations:
       required: false
   - type: textarea
