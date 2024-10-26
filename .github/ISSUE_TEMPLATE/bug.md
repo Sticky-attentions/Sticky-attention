@@ -1,24 +1,64 @@
----
-name: bug
-about: 创建一份报告来帮助我们改进
-title: "【Bug】"
-labels: bug, 待查看
-assignees: jizilin6732
-
----
-
-**描述**
-
-
-**复现**
-
-
-**预期行为**
-
-
-**设备信息**
-- 厂商：
-- 操作系统：
-- 版本号：
-- 系统类型：x64/x32
-- 触控设备：是/否
+name: BUG
+description: 提交BUG。
+title: "[Bug]: "
+labels: ["BUG", "待查看"]
+projects: ["Sticky-attention"]
+assignees:
+  - jizilin6732
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请详细的写出您在使用Sa时出现的问题！
+  - type: input
+    id: contact
+    attributes:
+      label: 联系方式
+      description: 我们可能需要向你更加询问了解Sa里您碰到的问题，你可以选择不填写（QQ号,邮箱....）
+      placeholder: ex. xxxxxxx@qq.com
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 碰到了什么问题？
+      description: 你干啥后发生了什么了！
+      placeholder: 例子：我发现我点击XXXX后出现了bug!
+      value: ""
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: 版本
+      description: What version of our software are you running?
+      options:
+        - 稳定版
+        - 测试版
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: 你在哪个方面遇到了问题？
+      multiple: true
+      options:
+        - 设置
+        - 主界面
+        - 编辑作业
+        - 其他
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错日志
+      description: 请复制并粘贴任何相关的日志输出。这将被自动格式化成代码，所以不需要反勾号。
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 提问时的智慧
+      description: 通过提交此问题，您同意遵守我们的 [提问时的智慧](https://forum.srinternet.top/d/2-ti-wen-de-zhi-hui-2010-zh-cn). 
+      options:
+        - label: 我已了解并遵守【提问时的智慧】
+          required: true
