@@ -27,55 +27,60 @@ body:
       value: "例子：我发现我点击XXXX后出现了bug!"
     validations:
       required: true
-
-   - type: dropdown
+  - type: dropdown
     id: version
     attributes:
       label: 版本
       description: 您现在使用的是最新版吗
       options:
-        - 最新测试版
-        - 最新稳定版
-      default: 0
+        - label: 最新测试版
+          value: test-version
+        - label: 最新稳定版
+          value: stable-version
     validations:
       required: true
-  
-    - type: dropdown
+  - type: dropdown
     id: system
     attributes:
       label: 系统版本
       description: 选择你使用的系统版本
       options:
-        - win7（32）
-        - win7（64）
-        - win10（32）
-        - win10（64）
-        - win10（32）
-        - win10（64）
-      default: 0
+        - label: win7（32）
+          value: win7-32
+        - label: win7（64）
+          value: win7-64
+        - label: win10（32）
+          value: win10-32
+        - label: win10（64）
+          value: win10-64
     validations:
       required: true
   - type: dropdown
-    id: touch screen
+    id: touch_screen
     attributes:
       label: 触屏设备
       description: 是否是触屏设备
       options:
-        - 是
-        - 否
-    default: 0
+        - label: 是
+          value: yes
+        - label: 否
+          value: no
     validations:
       required: true
-    - type: dropdown
+  - type: dropdown
     id: browsers
     attributes:
       label: 你在软件的哪个方面遇到了问题？
       multiple: true
       options:
-        - 设置
-        - 主界面
-        - 编辑作业
-        - 其他
+        - label: 设置
+          value: settings
+        - label: 主界面
+          value: main-interface
+        - label: 编辑作业
+          value: edit-exercise
+        - label: 其他
+          value: other
   - type: textarea
     id: logs
     attributes:
@@ -86,7 +91,7 @@ body:
     id: terms
     attributes:
       label: 提问时的智慧
-      description: 通过提交此问题，您同意遵守我们的 [提问时的智慧](https://forum.srinternet.top/d/2-ti-wen-de-zhi-hui-2010-zh-cn). 
+      description: 通过提交此问题，您同意遵守我们的 [提问时的智慧](https://forum.srinternet.top/d/2-ti-wen-de-zhi-hui-2010-zh-cn).  
       options:
         - label: 我已了解并遵守【提问时的智慧】
           required: true
