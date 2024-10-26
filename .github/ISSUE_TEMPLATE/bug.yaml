@@ -31,10 +31,10 @@ body:
     id: version
     attributes:
       label: 版本
-      description: What version of our software are you running?
+      description: 您现在使用的是最新版吗
       options:
-        - 1(稳定版)
-        - 2(测试版)
+        - 1
+        - 0
       default: 0
     validations:
       required: true
