@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        请详细的写出您在使用Sa时出现的问题！
+        请写出您在使用Sa时出现的问题！
   - type: input
     id: contact
     attributes:
@@ -33,15 +33,15 @@ body:
       label: 版本
       description: 您现在使用的是最新版吗
       options:
-        - （测试版）
-        - （稳定版）
+        - 测试版
+        - 稳定版
       default: 0
     validations:
       required: true
   - type: dropdown
     id: browsers
     attributes:
-      label: 你在哪个方面遇到了问题？
+      label: 你在软件的哪个方面遇到了问题？
       multiple: true
       options:
         - 设置
