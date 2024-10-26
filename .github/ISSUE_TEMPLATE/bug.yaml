@@ -38,7 +38,7 @@ body:
       default: 0
     validations:
       required: true
-      - type: dropdown
+  - type: dropdown
     id: browsers
     attributes:
       label: 你在软件的哪个方面遇到了问题？
