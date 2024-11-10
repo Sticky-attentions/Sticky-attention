@@ -110,7 +110,19 @@
                     Name="HelloWRC" Description="软件作者，写代码巨水（划掉）" />
                 <models:ContributionMember
                    AvatarImage="/Assets/Contributiors/11.jpg"
-                   Name="JIzilin" Description="这是个大史！" />
+                   Name="JIzilin" Description="我告诉你们啊 这个姓纪的写代码拉的要史！" />
+                <models:ContributionMember
+                    AvatarImage="/Assets/Contributiors/unDefFtr.jpg"
+                    Name="unDefFtr" Description="更新服务器与网站" />
+                <models:ContributionMember
+                AvatarImage="/Assets/Contributiors/hello8693.jpg"
+                 Name="hello8693" Description="更新服务器与网站" />
+                <models:ContributionMember
+                AvatarImage="/Assets/Contributiors/课是乐队(´∀｀)♡ClassiSBand.jpg"
+                  Name="课是乐队(´∀｀)♡ClassiSBand" Description="群主的喵梁👯‍♂️" />
+                <models:ContributionMember
+                AvatarImage="/Assets/Contributiors/Shompinice.jpg"
+                  Name="Shompinice" Description="绘画大师🖐" />
             </ListView>
         </Grid>
 
@@ -176,6 +188,9 @@
                 <models:ContributionLabel Title="MdXaml"
                                           License="MIT License"
                                           Website="https://github.com/whistyun/MdXaml" />
+                <models:ContributionLabel Title="云母工艺"
+                                          License="云母工艺"
+                                          Website="https://github.com/MicaApps" />
                 <models:ContributionLabel Title="Microsoft.AppCenter"
                                           License="MIT License"
                                           Website="https://aka.ms/telgml" />
@@ -420,46 +435,65 @@
                                     <Separator Margin="0 16 0 8"/>
                                     <ely:IconText Kind="Wallpaper" Text="壁纸主题色" Margin="0 0 0 8"/>
                                     <Grid>
-                                        <Image Source="{Binding WallpaperPickingService.WallpaperImage, Mode=TwoWay}" Stretch="UniformToFill"/>
-                                        <Grid VerticalAlignment="Bottom" IsEnabled="{Binding WallpaperPickingService.IsWorking, Mode=OneWay, Converter={StaticResource BooleanToBooleanReConverter}}">
-                                            <Border Background="{DynamicResource MaterialDesignPaper}" Opacity="0.85"/>
-                                            <!-- 刷新 -->
-                                            <Button Style="{StaticResource MaterialDesignFlatButton}" Click="ButtonUpdateWallpaper_OnClick"
-                                                    HorizontalAlignment="Left" Margin="8 0">
-                                                <ely:IconText Kind="Refresh" Text="刷新"/>
-                                            </Button>
-                                            <!-- 颜色选择 -->
-                                            <ListBox ItemsSource="{Binding Settings.WallpaperColorPlatte, Mode=OneWay}"
-                                                     SelectedIndex="{Binding Settings.SelectedPlatteIndex}"
-                                                     HorizontalAlignment="Right">
-                                                <ListBox.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel IsItemsHost="True"/>
-                                                    </ItemsPanelTemplate>
-                                                </ListBox.ItemsPanel>
-                                                <ListBox.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <materialDesign:ColorZone Background="{Binding Converter={StaticResource ColorToColorPickerBrushConverter}}"
-                                                                                  Width="32" Height="32"
-                                                                                  Mode="Custom">
-                                                            <materialDesign:PackIcon Kind="Check" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                                                                                     Width="14" Height="14"
-                                                                                     Background="White"
-                                                                                     Foreground="Black"
-                                                                                     Visibility="{Binding IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBoxItem}}, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                                        </materialDesign:ColorZone>
-                                                    </DataTemplate>
-                                                </ListBox.ItemTemplate>
-                                            </ListBox>
-                                        </Grid>
-                                        <!-- Loading -->
-                                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        <StackPanel Margin="12">
+                                            <ely:IconText Kind="PaletteOutline" Text="选择主题色" />
+                                            <Grid VerticalAlignment="Bottom"
+                                      IsEnabled="{Binding WallpaperPickingService.IsWorking, Mode=OneWay, Converter={StaticResource BooleanToBooleanReConverter}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+                                                <WrapPanel HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Grid.Column="1">
+                                                    <!-- 刷新 -->
+                                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                                Click="ButtonUpdateWallpaper_OnClick"
+                                                VerticalAlignment="Center"
+                                                Margin="2 0">
+                                                        <ely:IconText Kind="Refresh" Text="刷新" />
+                                                    </Button>
+                                                    <!-- 预览提取结果 -->
+                                                </WrapPanel>
+                                                <!-- 颜色选择 -->
+                                                <ListBox Grid.Column="0"
+                     ItemsSource="{Binding SettingsService.Settings.WallpaperColorPlatte, Mode=OneWay}"
+                     SelectedIndex="{Binding SettingsService.Settings.SelectedPlatteIndex}"
+                     materialDesign:ScrollViewerAssist.BubbleVerticalScroll="True"
+                     PreviewMouseWheel="UIElement_OnPreviewMouseWheel"
+                     HorizontalAlignment="Left">
+                                                    <ListBox.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel IsItemsHost="True" />
+                                                        </ItemsPanelTemplate>
+                                                    </ListBox.ItemsPanel>
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <materialDesign:ColorZone
+                                                    Background="{Binding Converter={StaticResource ColorToColorPickerBrushConverter}}"
+                                                    Width="32" Height="32"
+                                                    Mode="Custom">
+                                                                <materialDesign:PackIcon Kind="Check"
+                                                        VerticalAlignment="Bottom"
+                                                        HorizontalAlignment="Right"
+                                                        Width="14" Height="14"
+                                                        Background="White"
+                                                        Foreground="Black"
+                                                        Visibility="{Binding IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBoxItem}}, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                            </materialDesign:ColorZone>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                            </Grid>
+                                            <!-- Loading -->
+                                            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                               Visibility="{Binding WallpaperPickingService.IsWorking, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                                                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                                                     Background="{DynamicResource MaterialDesignPaper}"
                                                     Opacity="0.8"/>
-                                            <ely:StarRailLoadingControl/>
-                                        </Grid>
+                                                <ely:StarRailLoadingControl/>
+                                            </Grid>
+                                        </StackPanel>
                                     </Grid>
                                     <!-- 启用自动提取主题色 -->
                                     <ely:SettingsCard IconGlyph="RefreshAuto" Header="启用自动提取主题色" Margin="0 12 0 6"
@@ -528,13 +562,13 @@
                                         <materialDesign:Ripple Grid.Column="0" VerticalAlignment="Top"
                                             MouseDown="AppIcon_OnMouseDown">
                                             <!-- TODO: 图标 -->
-                                            <Image  x:Name="statusIcon" Source="/Assets/icon/帮助.png" Width="60"
+                                            <Image  x:Name="statusIcon" Source="/Assets/icon/帮助.png" Width="49"
                                 Height="90" VerticalAlignment="Top" />
                                         </materialDesign:Ripple>
                                         <!-- about -->
                                         <StackPanel Grid.Column="1" Margin="5 0 0 0">
                                             <TextBlock>
-                                 <Run Text="未获取更新" x:Name="versionStatusTextBlock" FontSize="45" FontWeight="Medium" />
+                                 <Run Text="未获取更新" x:Name="versionStatusTextBlock" FontSize="38" FontWeight="Medium" />
                                  <LineBreak />
                                 <TextBlock Margin="-1" >
                                       <Run         x:Name="versionStatusTexts"      Text="版本：" FontWeight="Bold" FontSize="18"/>
@@ -543,12 +577,15 @@
                                      <LineBreak />
                                      <LineBreak />
                                      <ProgressBar x:Name="pbDown" Height="5" Width="500" Margin="0 -3 0 0" IsIndeterminate="True"  Minimum="0"  Maximum="100"  />
-                                      <Label Name="labelProgress" Content="-➊➊➍➎➊➍" Visibility="Collapsed" />
+                                      <Label Name="labelProgress" Content="+➊➊➍➎➊➍-" Visibility="Collapsed" />
                                             </TextBlock>
                                             <WrapPanel>
-                                                <Button HorizontalAlignment="Left" Margin="10"
-                              Style="{StaticResource MaterialDesignFlatButton}"
-                              Click="Check_for_updates" Background="#bfbfbf" BorderBrush="Transparent">
+                                                <Button HorizontalAlignment="Left" Margin="10" 
+                               Style="{StaticResource MaterialDesignFlatButton}"
+                               Click="Check_for_updates"
+                               BorderBrush="{DynamicResource MaterialDesignDivider}" 
+                                                    BorderThickness="1"
+                                                    Background="Transparent">
                                                     <ely:IconText Kind="restart" Text="检查并更新"/>
                                                 </Button>
                                             </WrapPanel>
@@ -760,9 +797,11 @@
                                             <LineBreak/>
                                             应用字体使用了小米开源的MiSans。
                                             <LineBreak/>
-                                            协助本应用测试的同学。
+                                            感谢Shompinice提供应用图标。
                                             <LineBreak/>
                                             感谢jizilin为本项目提供的下载与更新资源网站。
+                                            <LineBreak/>
+                                            感谢unDefFtr与hello8693为本项目提供的下载资源网站。
                                             <LineBreak/>
                                             部分图像资源 (/Assets/*)来自米游社表情包，版权归 miHoYo所有。
                                             <LineBreak/>
@@ -782,7 +821,7 @@
                                             <Button HorizontalAlignment="Left" Margin="6"
                                                     Style="{StaticResource MaterialDesignFlatButton}"
                                                     Click="ButtonThirdPartyLibs_OnClick">
-                                                <ely:IconText Kind="PackageVariant" Text="第三方库" />
+                                                <ely:IconText Kind="PackageVariant" Text="第三方库与其他组织" />
                                             </Button>
                                         </Paragraph>
 
