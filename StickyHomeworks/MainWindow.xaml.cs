@@ -581,7 +581,7 @@ namespace StickyHomeworks
             // 文件扩展名
             string fileExtension = ".png";
             // 保留的最新文件数量
-            const int maxFiles = 20;
+            const int maxFiles = 120;
 
             // 获取备份文件夹内所有以“备份文件”开头的文件
             var backupFiles = Directory.GetFiles(folderPath)
