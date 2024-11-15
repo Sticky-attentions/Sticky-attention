@@ -13,6 +13,8 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using System;
+using System.IO;
 
 namespace StickyHomeworks.Views;
 
@@ -285,7 +287,40 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
     private void ButtonEditingDone_OnClick(object sender, RoutedEventArgs e)
     {
         EditingFinished?.Invoke(this, EventArgs.Empty);
+        BackupSettingsJson();
         AppEx.GetService<ProfileService>().SaveProfile();
+    }
+
+    private void BackupSettingsJson()
+    {
+        string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+        string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+        string backupFilePath = Path.Combine(backupDirectory, $"Settings_{DateTime.Now:yyyyMMddHHmmss}.json");
+
+        try
+        {
+            // 确保源文件存在
+            if (File.Exists(sourceFilePath))
+            {
+                // 如果Backups文件夹不存在，则创建它
+                if (!Directory.Exists(backupDirectory))
+                {
+                    Directory.CreateDirectory(backupDirectory);
+                }
+
+                // 复制文件到新的文件名
+                File.Copy(sourceFilePath, backupFilePath, true);
+                MessageBox.Show("Settings.json has been backed up successfully.");
+            }
+            else
+            {
+                MessageBox.Show("Settings.json file does not exist.");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error backing up Settings.json: {ex.Message}");
+        }
     }
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)

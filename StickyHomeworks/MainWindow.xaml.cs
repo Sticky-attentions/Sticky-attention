@@ -409,21 +409,14 @@ namespace StickyHomeworks
 
         private void ButtonExit_OnClick(object sender, RoutedEventArgs e)
         {
-            // 显示一个消息框询问用户是否要关闭程序
-            AutoExport(null, null);
-            var result = System.Windows.MessageBox.Show("您确定要关闭程序吗？", "Sticky-attention", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                // 找到 DialogHost 控件
+                var dialogHost = this.FindResource("StopConfirm") as DialogHost;
+                if (dialogHost != null)
+                {
+                    dialogHost.IsOpen = true;
+                }
             
-            if (result == MessageBoxResult.Yes)
-            {
-                // 如果用户选择“是”，则执行关闭逻辑
-                ViewModel.IsClosing = true;
-                Close();
-            }
-            else
-            {
-                // 如果用户选择“否”，则不执行任何操作
-                return;
-            }
         }
 
         private void ButtonDateSetToday_OnClick(object sender, RoutedEventArgs e)
@@ -742,6 +735,13 @@ namespace StickyHomeworks
             System.Windows.Forms.Application.Restart();
             System.Windows.Application.Current.Shutdown();
         }
+
+        private void ButtonSTOP_OnClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.IsClosing = true;
+            Close();
+        }
+
         private void MainWindow_OnDragOver(object sender, DragEventArgs e)
         {
             // 当拖动对象进入窗口时，可以在这里添加逻辑
