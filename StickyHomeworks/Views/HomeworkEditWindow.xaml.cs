@@ -310,16 +310,15 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
 
                 // 复制文件到新的文件名
                 File.Copy(sourceFilePath, backupFilePath, true);
-                MessageBox.Show("Settings.json has been backed up successfully.");
             }
             else
             {
-                MessageBox.Show("Settings.json file does not exist.");
+                
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error backing up Settings.json: {ex.Message}");
+            MessageBox.Show($"无法备份Settings.json: {ex.Message}");
         }
     }
 
@@ -412,4 +411,6 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
         if (Left + ActualWidth > screenWidth) Left = screenWidth - ActualWidth;
         if (Top + ActualHeight > screenHeight) Top = screenHeight - ActualHeight;
     }
+
+   
 }
