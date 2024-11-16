@@ -34,7 +34,7 @@ namespace StickyHomeworks
 
         public event EventHandler? OnHomeworkEditorUpdated;
 
-        string folderName = "备份";
+        //string folderName = "备份";
 
         // 获取当前应用程序的执行目录
         string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -164,7 +164,48 @@ namespace StickyHomeworks
                 SettingsService.Settings.WindowHeight = Height * dpi;
             }
         }
+        private void Clean_old_dir()
+    {
+        string backupDirectory = @"C:\Your\Backup\Directory"; // 替换为你的备份目录路径
+        int maxBackups = 30;
+        int maxDeletions = 3650;
 
+        var directories = new DirectoryInfo(backupDirectory).GetDirectories()
+            .OrderBy(d => d.Name)
+            .ToList();
+
+        int deletions = 0;
+
+        while (directories.Count > maxBackups && deletions < maxDeletions)
+        {
+            var oldestDirectory = directories.First();
+            if (DateTime.TryParse(oldestDirectory.Name, out DateTime backupDate))
+            {
+                if ((DateTime.Now - backupDate).Days > 30)
+                {
+                    oldestDirectory.Delete(true);
+                    directories.RemoveAt(0);
+                    deletions++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (directories.Count > maxBackups)
+        {
+            foreach (var dir in directories)
+            {
+                dir.Delete(true);
+            }
+        }
+    }
         protected void OnInitialized(EventArgs e)
         {
             // 初始化时清理过期作业
@@ -175,6 +216,26 @@ namespace StickyHomeworks
                 // 如果有过期作业，显示提示信息，并提供恢复选项（误了）
             }
             base.OnInitialized(e);
+
+            //施工场地
+            // 文件夹名称
+            string folderName = "SA-AutoBackup";
+            
+            string currentDirectory = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
+
+
+            // 组合目录，并确保备份文件夹存在
+            string folderPath = Path.Combine(currentDirectory, folderName);
+            
+            // 获取子目录数组
+            string[] subdirectories = Directory.GetDirectories(folderPath);
+            // 输出子目录数量
+            for (int nff = subdirectories.Length; nff > 30;)
+            {
+                
+                subdirectories = Directory.GetDirectories(folderPath);
+                nff = subdirectories.Length;
+            }
         }
 
         private void RecoverExpiredHomework()
@@ -551,20 +612,24 @@ namespace StickyHomeworks
         }
 
         //一件导出到？盘
-        private static int fileIndex = 0;
+        //！！！！记得删除！！！！！
+        //private static int fileIndex = 0;
+        //！！！！记得删除！！！！!
         private async void AutoExport(object sender, RoutedEventArgs e)
         {
+            //修改开始之处
             // 文件夹名称
-            string folderName = "备份";
-
-            // 获取当前应用程序的执行目录
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
+            string folderName = "SA-AutoBackup";
+            string cfolderName = System.DateTime.Now.ToString("d");
+            // 获取当前应用程序的执行目录（不符合规范）
+            //string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            //在C#中，可以使用`System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments)`来获取“我的文档”文件夹的路径
+            string currentDirectory = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
             // 设置视图模型的 IsWorking 属性为 true，表示当前正在处理导出操作
             ViewModel.IsWorking = true;
 
             // 组合目录，并确保备份文件夹存在
-            string folderPath = Path.Combine(currentDirectory, folderName);
+            string folderPath = Path.Combine(currentDirectory, folderName, cfolderName);
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -577,20 +642,20 @@ namespace StickyHomeworks
             await Task.Yield();
 
             // 文件基本名称
-            string baseFileName = "备份文件";
+            string baseFileName = DateTime.Now.ToString("T");
             // 文件扩展名
             string fileExtension = ".png";
             // 保留的最新文件数量
-            const int maxFiles = 20;
+            //const int maxFiles = 20;
 
             // 获取备份文件夹内所有以“备份文件”开头的文件
-            var backupFiles = Directory.GetFiles(folderPath)
-                                         .Where(f => Path.GetFileName(f).StartsWith(baseFileName))
-                                         .Select(f => new FileInfo(f))
-                                         .ToList();
+            //var backupFiles = Directory.GetFiles(folderPath)
+            //                             .Where(f => Path.GetFileName(f).StartsWith(baseFileName))
+            //                             .Select(f => new FileInfo(f))
+            //                             .ToList();
 
             // 如果备份文件数量达到上限，则删除最旧的文件
-            if (backupFiles.Count >= maxFiles)
+            /*if (backupFiles.Count >= maxFiles)
             {
                 // 获取最旧的文件路径
                 string oldestFilePath = backupFiles.OrderBy(fi => fi.CreationTime).First().FullName;
@@ -601,10 +666,12 @@ namespace StickyHomeworks
             // 确保fileIndex在1到maxFiles之间
             fileIndex = (fileIndex + 1) % (maxFiles + 1);
             if (fileIndex == 0) fileIndex = 1;
-
+            */
             // 生成新的文件名
-            string newFileName = $"{baseFileName}{fileIndex}{fileExtension}";
+            string newFileName = $"{baseFileName}{fileExtension}";
             string filePath = Path.Combine(folderPath, newFileName);
+
+            //修改结束之处
 
             // 创建一个新的绘图视觉对象
             var visual = new DrawingVisual();
