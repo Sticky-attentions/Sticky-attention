@@ -69,6 +69,7 @@ namespace StickyHomeworks
             string directoryPath = Path.Combine(currentDirectory, folderName); // 备份文件夹
             int daysOld = 30; // 设置为30天
             DeleteOldFolders(directoryPath, daysOld);
+            BackupSettingsJson();//实现某人没地方放的备份文件
         }
 
         //1.事件处理器来保存窗口位置 防止用户手动从任务管理器关闭软件而导致的无法保存位置（可能无效）
@@ -458,9 +459,14 @@ namespace StickyHomeworks
 
         private void ButtonExit_OnClick(object sender, RoutedEventArgs e)
         {
-            //把巨丑无比的关闭节面改回来
-            ViewModel.IsClosing = true;
-            Close();
+
+            // 找到 DialogHost 控件
+            var dialogHost = this.FindResource("StopConfirm") as DialogHost;
+            if (dialogHost != null)
+            {
+                dialogHost.IsOpen = true;
+            }
+
         }
 
         private void ButtonDateSetToday_OnClick(object sender, RoutedEventArgs e)
@@ -856,6 +862,47 @@ namespace StickyHomeworks
                 Debug.WriteLine($"Error repositioning the editing window: {e.Message}");
             }
 
+        }
+        private void ButtonSTOP_OnClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.IsClosing = true;
+            Close();
+        }
+        private void BackupSettingsJson()
+        {
+            //删除那一坨备份
+            string folderName = "SA-AutoBackup";
+            string settings_folderName = "Settings-Backups";
+            string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+            string backupDirectory = Path.Combine(currentDirectory, folderName, settings_folderName); // 备份文件夹
+
+            string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+            //string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+            string backupFilePath = Path.Combine(backupDirectory, $"Settings_{DateTime.Now:yyyyMMddHHmmss}.json");
+
+            try
+            {
+                // 确保源文件存在
+                if (File.Exists(sourceFilePath))
+                {
+                    // 如果Backups文件夹不存在，则创建它
+                    if (!Directory.Exists(backupDirectory))
+                    {
+                        Directory.CreateDirectory(backupDirectory);
+                    }
+
+                    // 复制文件到新的文件名
+                    File.Copy(sourceFilePath, backupFilePath, true);
+                }
+                else
+                {
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"无法备份Settings.json: {ex.Message}");
+            }
         }
     }
 }
