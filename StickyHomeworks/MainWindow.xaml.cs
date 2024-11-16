@@ -57,12 +57,18 @@ namespace StickyHomeworks
             // 设置窗口的数据上下文为当前窗口实例
             DataContext = this;
             // 注册窗口关闭事件（可能无效）
-            Closing +=  OnApplicationExit;
+            Closing += OnApplicationExit;
             focusObserverService.FocusChanged += FocusObserverServiceOnFocusChanged;
             ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
             ViewModel.PropertyChanging += ViewModelOnPropertyChanging;
             DataContext = this;
             Application.Current.Exit += OnApplicationExits;
+            //删除那一坨备份
+            string folderName = "SA-AutoBackup";
+            string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+            string directoryPath = Path.Combine(currentDirectory, folderName); // 备份文件夹
+            int daysOld = 30; // 设置为30天
+            DeleteOldFolders(directoryPath, daysOld);
         }
 
         //1.事件处理器来保存窗口位置 防止用户手动从任务管理器关闭软件而导致的无法保存位置（可能无效）
@@ -153,6 +159,8 @@ namespace StickyHomeworks
 
         private void SavePos()
         {
+
+
             // 获取当前 DPI
             GetCurrentDpi(out var dpi, out _);
             // 根据当前窗口的位置和尺寸以及 DPI 保存设置
@@ -164,48 +172,47 @@ namespace StickyHomeworks
                 SettingsService.Settings.WindowHeight = Height * dpi;
             }
         }
-        private void Clean_old_dir()
-    {
-        string backupDirectory = @"C:\Your\Backup\Directory"; // 替换为你的备份目录路径
-        int maxBackups = 30;
-        int maxDeletions = 3650;
-
-        var directories = new DirectoryInfo(backupDirectory).GetDirectories()
-            .OrderBy(d => d.Name)
-            .ToList();
-
-        int deletions = 0;
-
-        while (directories.Count > maxBackups && deletions < maxDeletions)
+        public void DeleteOldFolders(string directoryPath, int daysOld)
         {
-            var oldestDirectory = directories.First();
-            if (DateTime.TryParse(oldestDirectory.Name, out DateTime backupDate))
-            {
-                if ((DateTime.Now - backupDate).Days > 30)
-                {
-                    oldestDirectory.Delete(true);
-                    directories.RemoveAt(0);
-                    deletions++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
+            ViewModel.IsWorking = true;
+            // 获取当前时间
+            DateTime now = DateTime.Now;
 
-        if (directories.Count > maxBackups)
-        {
-            foreach (var dir in directories)
+            // 获取目录信息
+            DirectoryInfo dirInfo = new DirectoryInfo(directoryPath);
+
+            // 检查目录是否存在
+            if (!dirInfo.Exists)
             {
-                dir.Delete(true);
+                ViewModel.SnackbarMessageQueue.Enqueue("备份文件夹不存在，清理操作已终止！");
+                return;
             }
+
+            // 获取所有子目录
+            FileInfo[] files = dirInfo.GetFiles();
+            Directory.CreateDirectory(directoryPath); // 确保目录存在
+            DirectoryInfo[] subDirs = dirInfo.GetDirectories();
+
+            foreach (DirectoryInfo subDir in subDirs)
+            {
+                // 检查文件夹的最后修改时间
+                if ((now - subDir.LastWriteTime).TotalDays > daysOld)
+                {
+                    try
+                    {
+                        // 删除文件夹及其内容
+                        subDir.Delete(true);
+                        ViewModel.SnackbarMessageQueue.Enqueue($"删除备份: {subDir.FullName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // 处理可能的异常，例如权限问题
+                        ViewModel.SnackbarMessageQueue.Enqueue($"无法备份文件夹 {subDir.FullName}. 原因: {ex.Message}");
+                    }
+                }
+            }
+            ViewModel.IsWorking = false;
         }
-    }
         protected void OnInitialized(EventArgs e)
         {
             // 初始化时清理过期作业
@@ -217,25 +224,6 @@ namespace StickyHomeworks
             }
             base.OnInitialized(e);
 
-            //施工场地
-            // 文件夹名称
-            string folderName = "SA-AutoBackup";
-            
-            string currentDirectory = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
-
-
-            // 组合目录，并确保备份文件夹存在
-            string folderPath = Path.Combine(currentDirectory, folderName);
-            
-            // 获取子目录数组
-            string[] subdirectories = Directory.GetDirectories(folderPath);
-            // 输出子目录数量
-            for (int nff = subdirectories.Length; nff > 30;)
-            {
-                
-                subdirectories = Directory.GetDirectories(folderPath);
-                nff = subdirectories.Length;
-            }
         }
 
         private void RecoverExpiredHomework()
@@ -470,21 +458,9 @@ namespace StickyHomeworks
 
         private void ButtonExit_OnClick(object sender, RoutedEventArgs e)
         {
-            // 显示一个消息框询问用户是否要关闭程序
-            AutoExport(null, null);
-            var result = System.Windows.MessageBox.Show("您确定要关闭程序吗？", "Sticky-attention", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            
-            if (result == MessageBoxResult.Yes)
-            {
-                // 如果用户选择“是”，则执行关闭逻辑
-                ViewModel.IsClosing = true;
-                Close();
-            }
-            else
-            {
-                // 如果用户选择“否”，则不执行任何操作
-                return;
-            }
+            //把巨丑无比的关闭节面改回来
+            ViewModel.IsClosing = true;
+            Close();
         }
 
         private void ButtonDateSetToday_OnClick(object sender, RoutedEventArgs e)
@@ -611,25 +587,22 @@ namespace StickyHomeworks
             ViewModel.IsWorking = false;
         }
 
-        //一件导出到？盘
-        //！！！！记得删除！！！！！
-        //private static int fileIndex = 0;
-        //！！！！记得删除！！！！!
         private async void AutoExport(object sender, RoutedEventArgs e)
         {
             //修改开始之处
             // 文件夹名称
             string folderName = "SA-AutoBackup";
-            string cfolderName = System.DateTime.Now.ToString("d");
+            string cfolderName = System.DateTime.Now.ToString("d").Replace('/', '-');
             // 获取当前应用程序的执行目录（不符合规范）
             //string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
             //在C#中，可以使用`System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments)`来获取“我的文档”文件夹的路径
-            string currentDirectory = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
+            string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
             // 设置视图模型的 IsWorking 属性为 true，表示当前正在处理导出操作
             ViewModel.IsWorking = true;
 
             // 组合目录，并确保备份文件夹存在
             string folderPath = Path.Combine(currentDirectory, folderName, cfolderName);
+            string apifolderPath = Path.Combine(currentDirectory, folderName);
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
@@ -642,34 +615,16 @@ namespace StickyHomeworks
             await Task.Yield();
 
             // 文件基本名称
-            string baseFileName = DateTime.Now.ToString("T");
+            //string baseFileName = "debug";
+            string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
+            string apibaseFileName = "latest";
             // 文件扩展名
             string fileExtension = ".png";
-            // 保留的最新文件数量
-            //const int maxFiles = 20;
 
-            // 获取备份文件夹内所有以“备份文件”开头的文件
-            //var backupFiles = Directory.GetFiles(folderPath)
-            //                             .Where(f => Path.GetFileName(f).StartsWith(baseFileName))
-            //                             .Select(f => new FileInfo(f))
-            //                             .ToList();
-
-            // 如果备份文件数量达到上限，则删除最旧的文件
-            /*if (backupFiles.Count >= maxFiles)
-            {
-                // 获取最旧的文件路径
-                string oldestFilePath = backupFiles.OrderBy(fi => fi.CreationTime).First().FullName;
-                // 删除最旧的文件
-                File.Delete(oldestFilePath);
-            }
-
-            // 确保fileIndex在1到maxFiles之间
-            fileIndex = (fileIndex + 1) % (maxFiles + 1);
-            if (fileIndex == 0) fileIndex = 1;
-            */
-            // 生成新的文件名
             string newFileName = $"{baseFileName}{fileExtension}";
+            string apiFileName = $"{apibaseFileName}{fileExtension}";
             string filePath = Path.Combine(folderPath, newFileName);
+            string apifilePath = Path.Combine(apifolderPath, apiFileName);
 
             //修改结束之处
 
@@ -704,6 +659,9 @@ namespace StickyHomeworks
             // 创建一个 PNG 位图编码器，用于将位图编码为 PNG 格式
             var encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            // 创建一个 PNG 位图编码器，用于将位图编码为 PNG 格式
+            var encoder2 = new PngBitmapEncoder();
+            encoder2.Frames.Add(BitmapFrame.Create(bitmap));
 
             // 尝试将编码后的 PNG 数据保存到文件中
             try
@@ -717,6 +675,14 @@ namespace StickyHomeworks
                     // 调用 ShowExportSuccessMessage 方法显示导出成功的提示信息
                     //await ShowExportSuccessMessage(file);
                 }
+                using (var stream2 = new FileStream(apifilePath, FileMode.Create, FileAccess.Write))
+                {
+                    // 将编码器中的数据写入文件流
+                    encoder2.Save(stream2);
+
+                    // 调用 ShowExportSuccessMessage 方法显示导出成功的提示信息
+                    //await ShowExportSuccessMessage(file);
+                }
             }
             catch (Exception ex)
             {
@@ -724,7 +690,7 @@ namespace StickyHomeworks
                 ViewModel.SnackbarMessageQueue.Enqueue($"导出失败：{ex.Message}");
             }
 
-        
+
 
             // 设置视图模型的 IsWorking 属性为 false，表示导出操作已完成
             ViewModel.IsWorking = false;
@@ -792,7 +758,7 @@ namespace StickyHomeworks
             RecoverExpiredHomework();
         }
 
-        private void MenuItemBacktowork_OnClick(object sender , RoutedEventArgs e)
+        private void MenuItemBacktowork_OnClick(object sender, RoutedEventArgs e)
         {
             ViewModel.ExpiredHomeworks = ProfileService.CleanupOutdated();
             if (ViewModel.ExpiredHomeworks.Count > 0)
@@ -807,7 +773,7 @@ namespace StickyHomeworks
             AutoExport(null, null);
             App.ReleaseLock();
             System.Windows.Forms.Application.Restart();
-            System.Windows.Application.Current.Shutdown();
+
         }
         private void MainWindow_OnDragOver(object sender, DragEventArgs e)
         {
@@ -828,6 +794,7 @@ namespace StickyHomeworks
 
         private async void RepositionEditingWindow()
         {
+
             // 重新定位编辑窗口
             if (ViewModel.SelectedListBoxItem == null)
             {
@@ -888,6 +855,7 @@ namespace StickyHomeworks
                 // 处理可能发生的异常
                 Debug.WriteLine($"Error repositioning the editing window: {e.Message}");
             }
+
         }
     }
 }
