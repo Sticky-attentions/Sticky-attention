@@ -11,7 +11,7 @@
         xmlns:converter="clr-namespace:StickyHomeworks.Converter"
         mc:Ignorable="d"
         WindowStyle="None"
-        Topmost="False" 
+        Topmost="True" 
         ShowInTaskbar="False"
         d:DataContext="{d:DesignInstance local:HomeworkEditWindow}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"

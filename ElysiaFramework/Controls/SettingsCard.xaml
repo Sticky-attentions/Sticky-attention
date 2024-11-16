@@ -15,7 +15,10 @@
         <converters:BooleanToVisibilityReConverter x:Key="BooleanToVisibilityReConverter"/>
     </UserControl.Resources>
 
-    <Border CornerRadius="20"  BorderBrush="Gray" BorderThickness="1.2">
+    <Border CornerRadius="9"
+            BorderBrush="{DynamicResource MaterialDesignDivider}"
+            BorderThickness="1"
+            Background="{DynamicResource MaterialDesignPaper}">
         <Grid ClipToBounds="True">
             <materialDesign:Card
                 HorizontalAlignment="Stretch"
