@@ -223,7 +223,9 @@
                            Margin="0 0 0 4"/>
                 <TextBlock Text="正在开发/测试的不稳定功能，可能会出现Bug等问题，请谨慎使用。" TextWrapping="Wrap"
                            Margin="0 0 0 16"/>
-
+                <ely:SettingsCard IconGlyph="Eject" Header="选择回档文件"
+                       Description="回档按钮允许用户选择的json备份文件。"
+                       IsOn="{Binding Settings.Recover, Mode=TwoWay}" />
 
             </StackPanel>
         </ScrollViewer>

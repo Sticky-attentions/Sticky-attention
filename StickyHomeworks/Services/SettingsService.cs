@@ -36,7 +36,7 @@ public class SettingsService : ObservableRecipient, IHostedService
     {
         PropertyChanged += OnPropertyChanged;
         Settings.PropertyChanged += (o, args) => OnSettingsChanged?.Invoke(o, args);
-        LoadSettings();
+        LoadSettingsSafeAsync();
         //applicationLifetime.ApplicationStopping.Register(SaveSettings);
         OnSettingsChanged += OnOnSettingsChanged;
     }
@@ -46,16 +46,41 @@ public class SettingsService : ObservableRecipient, IHostedService
         ScheduleSaveSettings();
     }
 
-    private async void LoadSettings()
+    public async Task LoadSettingsSafeAsync()
     {
-        if (!File.Exists("./Settings.json")) return;
-        var json = await File.ReadAllTextAsync("./Settings.json");
-        var r = JsonSerializer.Deserialize<Settings>(json);
-        if (r != null)
+        try
         {
-            Settings = r;
+            string settingsPath = "./Settings.json";
+            if (!File.Exists(settingsPath))
+            {
+                // 如果文件不存在，可以记录日志或者抛出一个自定义异常
+                return;
+            }
+
+            string json = await File.ReadAllTextAsync(settingsPath);
+            Settings settings = JsonSerializer.Deserialize<Settings>(json);
+
+            if (settings != null)
+            {
+                lock (_lockObject)
+                {
+                    Settings = settings;
+                }
+            }
+            else
+            {
+                // 如果反序列化失败，可以记录日志或者抛出一个自定义异常
+            }
+        }
+        catch (Exception ex)
+        {
+            // 记录异常信息，可以是日志或者错误报告
+            // 根据异常类型决定是否需要进一步处理或抛出
         }
     }
+
+    // 在类中定义一个用于锁定的对象
+    private readonly object _lockObject = new object();
 
     public void SaveSettings()
     {

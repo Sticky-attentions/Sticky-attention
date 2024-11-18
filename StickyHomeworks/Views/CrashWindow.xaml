@@ -44,7 +44,7 @@
                      VerticalScrollBarVisibility="Auto" IsReadOnly="True" Text="{Binding CrashInfo, Mode=OneWay}" 
                      TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" />
         </ScrollViewer>
-        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,10">
             <Button Style="{StaticResource MaterialDesignPaperButton}" Margin="0 0 6 0" Click="ButtonIgnore_OnClick">
                 <ely:IconText Kind="Close" Text="忽略提示" IconMargin="3 0 0 0"/>
             </Button>
@@ -55,9 +55,12 @@
                 <ely:IconText Kind="Restart" Text="重启应用" IconMargin="3 0 0 0"/>
             </Button>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Style="{StaticResource MaterialDesignPaperButton}" Click="ButtonCopy_OnClick">
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,10,0,10">
+            <Button Style="{StaticResource MaterialDesignPaperButton}" Margin="0 0 6 0" Click="ButtonCopy_OnClick">
                 <ely:IconText Kind="ContentCopy" Text="拷贝错误" IconMargin="3 0 0 0"/>
+            </Button>
+            <Button Style="{StaticResource MaterialDesignPaperButton}" Click="ButtonRecover_OnClick">
+                <ely:IconText Kind="Eject" Text="回档至上一次" IconMargin="3 0 0 0"/>
             </Button>
         </StackPanel>
     </Grid>

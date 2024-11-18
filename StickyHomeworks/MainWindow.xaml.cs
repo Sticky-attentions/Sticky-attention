@@ -738,7 +738,7 @@ namespace StickyHomeworks
 
         private void ButtonSTOP_OnClick(object sender, RoutedEventArgs e)
         {
-            ViewModel.IsClosing = true;
+            ViewModel.IsClosing = true;            
             Close();
         }
 
