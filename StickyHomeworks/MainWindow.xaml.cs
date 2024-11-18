@@ -349,6 +349,7 @@ namespace StickyHomeworks
             ProfileService.Profile.Homeworks.Remove(ViewModel.SelectedHomework);
             ViewModel.IsUpdatingHomeworkSubject = false;
             AutoExport(null, null);
+            BackupSettingsJson();
         }
 
         private void ButtonEditDone_OnClick(object sender, RoutedEventArgs e)
@@ -820,6 +821,37 @@ namespace StickyHomeworks
             {
                 // 处理可能发生的异常
                 Debug.WriteLine($"Error repositioning the editing window: {e.Message}");
+            }
+        }
+
+        private void BackupSettingsJson()
+        {
+            string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+            string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+            string backupFilePath = Path.Combine(backupDirectory, $"Settings_{DateTime.Now:yyyyMMddHHmmss}.json");
+
+            try
+            {
+                // 确保源文件存在
+                if (File.Exists(sourceFilePath))
+                {
+                    // 如果Backups文件夹不存在，则创建它
+                    if (!Directory.Exists(backupDirectory))
+                    {
+                        Directory.CreateDirectory(backupDirectory);
+                    }
+
+                    // 复制文件到新的文件名
+                    File.Copy(sourceFilePath, backupFilePath, true);
+                }
+                else
+                {
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"无法备份Settings.json: {ex.Message}");
             }
         }
     }
