@@ -780,6 +780,13 @@ namespace StickyHomeworks
             App.ReleaseLock();
             System.Windows.Forms.Application.Restart();
 
+
+
+        private void ButtonSTOP_OnClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.IsClosing = true;            
+            Close();
+
         }
         private void MainWindow_OnDragOver(object sender, DragEventArgs e)
         {
