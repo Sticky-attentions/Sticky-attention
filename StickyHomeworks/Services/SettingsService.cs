@@ -84,7 +84,35 @@ public class SettingsService : ObservableRecipient, IHostedService
 
     public void SaveSettings()
     {
-        File.WriteAllText("./Settings.json", JsonSerializer.Serialize<Settings>(Settings));
+        var filePath = "./Settings.json";
+        var settings = Settings; // 假设Settings是你的设置对象
+
+        // 尝试打开文件以检查是否有其他进程正在使用它
+        try
+        {
+            using (var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+            {
+                // 如果无法获取独占访问权限，则会抛出IOException
+                // 在这里，我们不做任何事情，因为如果文件被成功打开，意味着没有其他进程在使用它
+            }
+        }
+        catch (IOException)
+        {
+            // 如果发生IOException，意味着文件可能正在被另一个进程使用
+            // 我们可以在这里添加逻辑来等待一段时间后重试
+            Thread.Sleep(1000); // 等待1秒
+        }
+
+        // 现在尝试写入文件
+        try
+        {
+            File.WriteAllText(filePath, JsonSerializer.Serialize(settings));
+        }
+        catch (IOException ex)
+        {
+            // 处理写入时的异常，例如日志记录或通知用户
+            Console.WriteLine("Error writing to file: " + ex.Message);
+        }
     }
 
     public event PropertyChangedEventHandler? OnSettingsChanged;
