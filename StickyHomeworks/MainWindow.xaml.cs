@@ -59,6 +59,7 @@ namespace StickyHomeworks
             // 注册窗口关闭事件（可能无效）
             Closing += OnApplicationExit;
             focusObserverService.FocusChanged += FocusObserverServiceOnFocusChanged;
+            this.Loaded += MainWindow_Loaded;
             ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
             ViewModel.PropertyChanging += ViewModelOnPropertyChanging;
             DataContext = this;
@@ -125,6 +126,9 @@ namespace StickyHomeworks
             }
         }
 
+
+
+
         private void ViewModelOnPropertyChanging(object? sender, PropertyChangingEventArgs e)
         {
             // 如果属性名称是 SelectedHomework，准备退出编辑模式
@@ -162,7 +166,7 @@ namespace StickyHomeworks
             Top = SettingsService.Settings.WindowY / dpi;
             Width = SettingsService.Settings.WindowWidth / dpi;
             Height = SettingsService.Settings.WindowHeight / dpi;
-            Automaticclarity();
+           
         }
 
         private void SavePos()
@@ -229,6 +233,12 @@ namespace StickyHomeworks
                 // 如果有过期作业，显示提示信息，并提供恢复选项（误了）
             }
             base.OnInitialized(e);
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // 当窗口加载完成后调用 Automaticclarity
+            Automaticclarity();
         }
 
         private void Automaticclarity()
@@ -612,15 +622,20 @@ namespace StickyHomeworks
 
         private async void AutoExport()
         {
+            // 如果窗口为 null 或者窗口的宽度或高度小于最小值，直接返回
+            if (Application.Current.MainWindow == null ||
+                Application.Current.MainWindow.ActualWidth < 1 ||
+                Application.Current.MainWindow.ActualHeight < 1)
+            {
+                return;  // 如果窗口不可见（宽度或高度小于1），直接返回
+            }
 
-                ViewModel.IsWorking = true;
-
+            ViewModel.IsWorking = true;
 
             // 文件夹名称
             string folderName = "SA-AutoBackup";
             string cfolderName = System.DateTime.Now.ToString("d").Replace('/', '-');
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-        
 
             bool hasErrorOccurred = false;
             try
@@ -633,11 +648,19 @@ namespace StickyHomeworks
                     Directory.CreateDirectory(folderPath);
                 }
 
+                // 确保 MainListView 和 SettingsService.Settings 已初始化
+                if (MainListView == null || SettingsService.Settings == null)
+                {
+                    throw new NullReferenceException("MainListView 或 SettingsService.Settings 未初始化！");
+                }
+
                 // 调用 ExitEditingMode 方法退出编辑模式
                 ExitEditingMode();
 
                 // 等待一个任务调度周期，确保 UI 操作完成后再进行后续操作
                 await Task.Yield();
+
+           
 
                 // 文件基本名称
                 string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
@@ -670,8 +693,12 @@ namespace StickyHomeworks
                     context.DrawRectangle(brush, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
                 }
 
+                // 获取有效的宽度和高度
+                int width = Math.Max(1, (int)(MainListView.ActualWidth * s));  // 保证最小宽度为1
+                int height = Math.Max(1, (int)(ActualHeight * s));  // 保证最小高度为1
+
                 // 创建一个目标为位图的渲染对象，用于将视觉对象转换为位图
-                var bitmap = new RenderTargetBitmap((int)(MainListView.ActualWidth * s), (int)(ActualHeight * s), 96d, 96d, PixelFormats.Default);
+                var bitmap = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
                 bitmap.Render(visual);
 
                 // 创建 PNG 位图编码器
@@ -693,8 +720,8 @@ namespace StickyHomeworks
             catch (Exception ex)
             {
                 // 如果发生异常，表示有困难出现，设置 IsWorking 为 true 来表示有问题
-                ViewModel.IsWorking = true;
                 hasErrorOccurred = true;
+                ViewModel.IsWorking = true;
                 // 显示失败信息
                 ViewModel.SnackbarMessageQueue.Enqueue($"导出失败：{ex.Message}");
             }
@@ -709,6 +736,9 @@ namespace StickyHomeworks
                 }
             }
         }
+
+
+
 
 
 

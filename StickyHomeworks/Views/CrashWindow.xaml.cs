@@ -16,7 +16,10 @@ namespace StickyHomeworks.Views;
 public partial class CrashWindow : MyWindow
 {
 
-    private readonly SettingsService _settingsService;
+
+    public ProfileService ProfileService { get; }
+
+    public SettingsService SettingsService { get; }
 
 
     public string? CrashInfo
@@ -31,7 +34,8 @@ public partial class CrashWindow : MyWindow
         set;
     } = new();
 
-    public CrashWindow(SettingsService settingsService)
+    public CrashWindow(ProfileService profileService,
+                          SettingsService settingsService)
     {
         if (settingsService == null)
         {
@@ -40,7 +44,8 @@ public partial class CrashWindow : MyWindow
 
         InitializeComponent();
         DataContext = this;
-        _settingsService = settingsService;
+        ProfileService = profileService;
+        SettingsService = settingsService;
     }
 
     public bool IsShowed { get; set; } = false;
@@ -53,7 +58,7 @@ public partial class CrashWindow : MyWindow
     protected override void OnContentRendered(EventArgs e)
     {
         IsShowed = true;
-        _settingsService.LoadSettingsSafeAsync(); // 在窗口显示时加载设置
+        SettingsService.LoadSettingsSafeAsync(); // 在窗口显示时加载设置
         base.OnContentRendered(e);
     }
 
@@ -110,7 +115,7 @@ public partial class CrashWindow : MyWindow
         string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
 
         // 检查Recover是否为true
-        if (_settingsService.Settings.Recover)
+        if (SettingsService.Settings.Recover)
         {
             RestoreFromUserSelection(backupDirectory, sourceFilePath);
         }
@@ -136,13 +141,21 @@ public partial class CrashWindow : MyWindow
         }
     }
 
-    private void RestoreFromLatestBackup(string backupDirectory, string sourceFilePath)//备份json主要逻辑方法
+    private void RestoreFromLatestBackup(string backupDirectory, string sourceFilePath) //备份json主要逻辑方法
     {
+        // 获取备份目录中所有的设置文件
         string[] backupFiles = Directory.GetFiles(backupDirectory, "Settings_*.json");
-        if (backupFiles.Length > 0)
+
+        if (backupFiles.Length > 1)
         {
-            var latestBackupFile = backupFiles.OrderByDescending(f => new FileInfo(f).LastWriteTime).First();
-            RestoreSettingsFile(latestBackupFile, sourceFilePath);
+            // 如果备份文件大于一个，按时间排序获取前两个文件
+            var sortedFiles = backupFiles.OrderByDescending(f => new FileInfo(f).LastWriteTime).Take(2).ToList();
+
+            // 调用恢复文件的方法并传递最新两个备份文件
+            foreach (var file in sortedFiles)
+            {
+                RestoreSettingsFile(file, sourceFilePath); //将备份文件恢复
+            }
         }
         else
         {
@@ -150,30 +163,39 @@ public partial class CrashWindow : MyWindow
         }
     }
 
-    private void RestoreSettingsFile(string sourceFilePath, string destinationFilePath)//备份json主要逻辑方法
+    private void RestoreSettingsFile(string sourceFilePath, string destinationFilePath) //备份json主要逻辑方法
     {
         try
         {
+            // 检查目标文件是否存在，如果存在则先删除
+            if (File.Exists(destinationFilePath))
+            {
+                File.Delete(destinationFilePath);
+            }
+
+            // 将源文件复制到目标目录并重命名
             File.Copy(sourceFilePath, destinationFilePath, true);
-            MessageBoxResult result = MessageBox.Show(sourceFilePath, destinationFilePath, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            //MessageBoxResult result = MessageBox.Show("成功回档 点击确定进行重启", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            // 弹出消息框，询问用户是否确认恢复备份
+            MessageBoxResult result = MessageBox.Show("是否恢复备份的 Settings.json 文件？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
             if (result == MessageBoxResult.Yes)
             {
-                RestartApplication();
+                RestartApplication();  // 恢复成功后重启应用
             }
             else
             {
-                // 用户选择取消，可以在这里添加取消操作的逻辑
-                // 例如，可以记录日志、关闭对话框或者返回到之前的界面等
-                // 以下代码只是简单的关闭对话框，实际应用中可能需要更复杂的逻辑
-                MessageBox.Show($"用户操作返回：NO");
+                // 用户选择取消
+                MessageBox.Show("用户操作返回：NO");
             }
         }
         catch (Exception ex)
         {
+            // 出现异常时，显示错误信息
             MessageBox.Show($"回档失败：{ex.Message}");
         }
     }
+
 
     private void RestartApplication()
     {

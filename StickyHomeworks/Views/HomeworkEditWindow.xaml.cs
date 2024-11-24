@@ -412,5 +412,8 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
         if (Top + ActualHeight > screenHeight) Top = screenHeight - ActualHeight;
     }
 
-   
+    private void EmojiButton_Click(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

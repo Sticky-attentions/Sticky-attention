@@ -107,6 +107,13 @@
                              Margin="4 0"
                               Style="{StaticResource MaterialDesignToolForegroundButton}"
                              Command="{Binding AddImageCommand}" />
+                                <Button Content="{materialDesign:PackIcon  EmoticonOutline}"
+                                    Click="EmojiButton_Click"
+                                    ToolTip="插入Emoji"
+                                    VerticalAlignment="Center"
+                                    Margin="4 0"
+                                     Style="{StaticResource MaterialDesignToolForegroundButton}"
+                                    Command="{Binding AddImageCommand}" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                                 <Button Content="{materialDesign:PackIcon Undo}"
