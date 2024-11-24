@@ -189,7 +189,6 @@ namespace StickyHomeworks
             if (!dirInfo.Exists)
             {
                 ViewModel.SnackbarMessageQueue.Enqueue("备份文件夹不存在，清理操作已终止！");
-                ViewModel.IsWorking = false;
                 return;
             }
 
