@@ -260,6 +260,51 @@
                 <Button Content="取消" HorizontalAlignment="Right" Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Margin="6 0 0 0" CommandParameter="{x:Null}"/>
             </StackPanel>
         </StackPanel>
+
+        <Grid x:Key="ExitConfirm" VerticalAlignment="Stretch" Margin="50 20 50 2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- 为TextBlock定义行高 -->
+                <RowDefinition Height="Auto"/>
+                <!-- 为账户Label和TextBox定义行高 -->
+                <RowDefinition Height="Auto"/>
+                <!-- 为密码Label和TextBox定义行高 -->
+                <RowDefinition Height="*"/>
+                <!-- 为保存按钮定义行高 -->
+            </Grid.RowDefinitions>
+
+            <TextBlock Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+        Grid.Row="0" 
+        VerticalAlignment="Center" 
+        HorizontalAlignment="Center"
+        Margin="20">
+ <Run Text="填写账户密码"/>
+            </TextBlock>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="60,0,60,20">
+                <Label Content="账户:" Target="{Binding ElementName=AccountTextBox}" />
+                <TextBox x:Name="AccountTextBox" Margin="10,0,0,0" Width="200" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="60,0,60,20">
+                <Label Content="密码:" Target="{Binding ElementName=passwordTextBox}" />
+                <TextBox x:Name="passwordTextBox" Margin="10,0,0,0" Width="200" />
+            </StackPanel>
+
+            <Grid Grid.Row="3" Margin="0,20,0,0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="保存" 
+         HorizontalAlignment="Stretch" 
+         Style="{DynamicResource MaterialDesignFlatButton}" 
+         Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                    <Button.CommandParameter>
+                        <system:Boolean xmlns:system="clr-namespace:System;assembly=mscorlib">True</system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+            </Grid>
+        </Grid>
     </Window.Resources>
     
     
@@ -640,6 +685,51 @@
                                     </FlowDocument>
                                 </FlowDocumentScrollViewer>
 
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+
+                    <TabItem Header="备份(没写)">
+                        <ScrollViewer>
+                            <StackPanel Style="{StaticResource SettingsPageStackPanelStyle}">
+                                <ely:IconText Kind="AccountPending" Text="备份" Margin="0 0 0 8"/>
+
+
+                                <ely:SettingsCard IconGlyph="PenPlus" Header="编写作业时"
+                               Description="编写作业时进行自动备份。"
+                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
+
+                                <ely:SettingsCard IconGlyph="TouchReading" Header="启动应用时"
+                               Description="启动时进行自动备份。"
+                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
+
+                                <ely:IconText Kind="Cloud" Text="WebDav" Margin="0 0 0 8"/>
+
+                                <ely:SettingsCard IconGlyph="Cloud" Header="启用WebDav" 
+                               Description="启用后可以使用该功能。"
+             IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
+
+
+
+                                <ely:SettingsCard IconGlyph="Key" Header="WebDav账户"
+    Description="首次使用该功能时，需要填写服务商链接和提供给您的账户和密码。">
+                                    <ely:SettingsCard.Switcher>
+                                        <DockPanel Width="60">
+                                            <Button Content="{materialDesign:PackIcon Edit, Size=20}" ToolTip="编辑" 
+                 Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"
+                 CommandParameter="{StaticResource ExitConfirm}"/>
+                                        </DockPanel>
+                                    </ely:SettingsCard.Switcher>
+                                </ely:SettingsCard>
+
+                                <ely:SettingsCard IconGlyph="CloudUpload" Header="自动上传截图"
+                               Description="每天自动在您设置的时间点截图并上传WebDav。"
+                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}"
+                               />
+
+
+                                <MenuItem Margin="-12 0" Header="退出" Icon="{materialDesign:PackIcon cancel}" Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}" CommandParameter="{StaticResource ExitConfirm}" />
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>

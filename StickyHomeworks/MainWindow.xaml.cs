@@ -75,6 +75,7 @@ namespace StickyHomeworks
             int daysOld = 30; // 设置为30天
             DeleteOldFolders(directoryPath, daysOld);
             BackupSettingsJson();//实现某人没地方放的备份文件
+
         }
 
         //1.事件处理器来保存窗口位置 防止用户手动从任务管理器关闭软件而导致的无法保存位置（可能无效）
@@ -161,6 +162,7 @@ namespace StickyHomeworks
             Top = SettingsService.Settings.WindowY / dpi;
             Width = SettingsService.Settings.WindowWidth / dpi;
             Height = SettingsService.Settings.WindowHeight / dpi;
+            Automaticclarity();
         }
 
         private void SavePos()
@@ -227,6 +229,19 @@ namespace StickyHomeworks
                 // 如果有过期作业，显示提示信息，并提供恢复选项（误了）
             }
             base.OnInitialized(e);
+        }
+
+        private void Automaticclarity()
+        {
+            if (SettingsService.Settings.lsclearance)
+            {
+                MenuItemBacktoworks_OnClick();
+
+            }
+            else
+            {
+
+            }
         }
 
         private void RecoverExpiredHomework()
@@ -597,16 +612,15 @@ namespace StickyHomeworks
 
         private async void AutoExport()
         {
-            // 检查系统负载，判断是否需要长时间等待
-            if (IsSystemUnderHeavyLoad())
-            {
+
                 ViewModel.IsWorking = true;
-            }
+
 
             // 文件夹名称
             string folderName = "SA-AutoBackup";
             string cfolderName = System.DateTime.Now.ToString("d").Replace('/', '-');
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+        
 
             bool hasErrorOccurred = false;
             try
@@ -690,51 +704,12 @@ namespace StickyHomeworks
                 if (!hasErrorOccurred)
                 {
                     // 延时操作，防止频繁更新
-                    await Task.Delay(500);  // 可调整延迟时间
+                    await Task.Delay(100);  // 可调整延迟时间
                     ViewModel.IsWorking = false;
                 }
             }
         }
 
-        /// <summary>
-        /// 检查系统是否负载过重（CPU 和内存的使用率超过阈值）。
-        /// </summary>
-        /// <returns>如果系统负载过重，则返回 true，否则返回 false。</returns>
-        private bool IsSystemUnderHeavyLoad()
-        {
-            const double cpuThreshold = 80.0;  // 设置 CPU 使用率超过 80% 时视为负载过重
-            const double memoryThreshold = 90.0;  // 设置内存使用率超过 80% 时视为负载过重
-
-            // 获取当前 CPU 使用率
-            var cpuUsage = GetCpuUsagePercentage();
-            // 获取当前内存使用率
-            var memoryUsage = GetMemoryUsagePercentage();
-
-            // 判断是否超过阈值
-            return cpuUsage > cpuThreshold || memoryUsage > memoryThreshold;
-        }
-
-        /// <summary>
-        /// 获取当前 CPU 使用率的百分比。
-        /// </summary>
-        /// <returns>CPU 使用率的百分比（0-100）。</returns>
-        private double GetCpuUsagePercentage()
-        {
-            var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            cpuCounter.NextValue();  // 需要调用一次才能获取正确的值
-            System.Threading.Thread.Sleep(1000);  // 等待 1 秒钟后再次获取数据
-            return cpuCounter.NextValue();
-        }
-
-        /// <summary>
-        /// 获取当前内存使用率的百分比。
-        /// </summary>
-        /// <returns>内存使用率的百分比（0-100）。</returns>
-        private double GetMemoryUsagePercentage()
-        {
-            var memoryCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
-            return memoryCounter.NextValue();
-        }
 
 
 
@@ -810,6 +785,19 @@ namespace StickyHomeworks
                 // 如果有过期作业，显示提示信息，并提供恢复选项（误了）
             }
         }
+
+        private void MenuItemBacktoworks_OnClick()
+        {
+            ViewModel.ExpiredHomeworks = ProfileService.CleanupOutdated();
+            if (ViewModel.ExpiredHomeworks.Count > 0)
+            {
+                ViewModel.CanRecoverExpireHomework = true;
+                // 如果有过期作业，显示提示信息，并提供恢复选项（误了）
+                ViewModel.SnackbarMessageQueue.Enqueue($"清除了{ViewModel.ExpiredHomeworks.Count}条过期的作业。",
+                "恢复", (o) => { RecoverExpiredHomework(); }, null, false, false, TimeSpan.FromSeconds(30));
+            }
+        }
+
         private void ButtonRestart_OnClick(object sender, RoutedEventArgs e)
         {
             // 点击重启按钮，重启应用程序
