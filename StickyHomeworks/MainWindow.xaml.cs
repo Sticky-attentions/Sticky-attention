@@ -67,6 +67,11 @@ namespace StickyHomeworks
             string folderName = "SA-AutoBackup";
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
             string directoryPath = Path.Combine(currentDirectory, folderName); // 备份文件夹
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
             int daysOld = 30; // 设置为30天
             DeleteOldFolders(directoryPath, daysOld);
             BackupSettingsJson();//实现某人没地方放的备份文件
@@ -184,6 +189,7 @@ namespace StickyHomeworks
             if (!dirInfo.Exists)
             {
                 ViewModel.SnackbarMessageQueue.Enqueue("备份文件夹不存在，清理操作已终止！");
+                ViewModel.IsWorking = false;
                 return;
             }
 
