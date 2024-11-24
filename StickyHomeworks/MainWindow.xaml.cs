@@ -592,112 +592,147 @@ namespace StickyHomeworks
 
         private async void AutoExport()
         {
-            //修改开始之处
+            // 检查系统负载，判断是否需要长时间等待
+            if (IsSystemUnderHeavyLoad())
+            {
+                ViewModel.IsWorking = true;
+            }
+
             // 文件夹名称
             string folderName = "SA-AutoBackup";
             string cfolderName = System.DateTime.Now.ToString("d").Replace('/', '-');
-            // 获取当前应用程序的执行目录（不符合规范）
-            //string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            //在C#中，可以使用`System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments)`来获取“我的文档”文件夹的路径
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-            // 设置视图模型的 IsWorking 属性为 true，表示当前正在处理导出操作
-            ViewModel.IsWorking = true;
 
-            // 组合目录，并确保备份文件夹存在
-            string folderPath = Path.Combine(currentDirectory, folderName, cfolderName);
-            string apifolderPath = Path.Combine(currentDirectory, folderName);
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            // 调用 ExitEditingMode 方法退出编辑模式
-            ExitEditingMode();
-
-            // 等待一个任务调度周期，确保 UI 操作完成后再进行后续操作
-            await Task.Yield();
-
-            // 文件基本名称
-            //string baseFileName = "debug";
-            string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
-            string apibaseFileName = "latest";
-            // 文件扩展名
-            string fileExtension = ".png";
-
-            string newFileName = $"{baseFileName}{fileExtension}";
-            string apiFileName = $"{apibaseFileName}{fileExtension}";
-            string filePath = Path.Combine(folderPath, newFileName);
-            string apifilePath = Path.Combine(apifolderPath, apiFileName);
-
-            //修改结束之处
-
-            // 创建一个新的绘图视觉对象
-            var visual = new DrawingVisual();
-            // 从设置服务中获取当前的缩放比例
-            var s = SettingsService.Settings.Scale;
-
-            // 打开视觉对象的渲染上下文
-            using (var context = visual.RenderOpen())
-            {
-                // 创建一个新的视觉画刷，用于将 MainListView 的视觉内容绘制到绘图面上
-                var brush = new VisualBrush(MainListView)
-                {
-                    Stretch = Stretch.None  // 设置画刷的拉伸模式为 None，即不拉伸
-                };
-
-                // 从应用的资源中找到名为 MaterialDesignPaper 的画刷
-                var bg = (System.Windows.Media.Brush)FindResource("MaterialDesignPaper");
-
-                // 在渲染上下文中绘制背景
-                context.DrawRectangle(bg, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
-
-                // 在渲染上下文中绘制 MainListView 的内容
-                context.DrawRectangle(brush, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
-            }
-
-            // 创建一个目标为位图的渲染对象，用于将视觉对象转换为位图
-            var bitmap = new RenderTargetBitmap((int)(MainListView.ActualWidth * s), (int)(ActualHeight * s), 96d, 96d, PixelFormats.Default);
-            bitmap.Render(visual);
-
-            // 创建一个 PNG 位图编码器，用于将位图编码为 PNG 格式
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmap));
-            // 创建一个 PNG 位图编码器，用于将位图编码为 PNG 格式
-            var encoder2 = new PngBitmapEncoder();
-            encoder2.Frames.Add(BitmapFrame.Create(bitmap));
-
-            // 尝试将编码后的 PNG 数据保存到文件中
+            bool hasErrorOccurred = false;
             try
             {
-                // 使用 FileStream 创建文件流，用于写入文件
+                // 组合目录，并确保备份文件夹存在
+                string folderPath = Path.Combine(currentDirectory, folderName, cfolderName);
+                string apifolderPath = Path.Combine(currentDirectory, folderName);
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                // 调用 ExitEditingMode 方法退出编辑模式
+                ExitEditingMode();
+
+                // 等待一个任务调度周期，确保 UI 操作完成后再进行后续操作
+                await Task.Yield();
+
+                // 文件基本名称
+                string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
+                string apibaseFileName = "latest";
+                string fileExtension = ".png";
+
+                string newFileName = $"{baseFileName}{fileExtension}";
+                string apiFileName = $"{apibaseFileName}{fileExtension}";
+                string filePath = Path.Combine(folderPath, newFileName);
+                string apifilePath = Path.Combine(apifolderPath, apiFileName);
+
+                // 创建一个新的绘图视觉对象
+                var visual = new DrawingVisual();
+                var s = SettingsService.Settings.Scale;
+
+                // 打开视觉对象的渲染上下文
+                using (var context = visual.RenderOpen())
+                {
+                    var brush = new VisualBrush(MainListView)
+                    {
+                        Stretch = Stretch.None  // 设置画刷的拉伸模式为 None，即不拉伸
+                    };
+
+                    var bg = (System.Windows.Media.Brush)FindResource("MaterialDesignPaper");
+
+                    // 在渲染上下文中绘制背景
+                    context.DrawRectangle(bg, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
+
+                    // 在渲染上下文中绘制 MainListView 的内容
+                    context.DrawRectangle(brush, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
+                }
+
+                // 创建一个目标为位图的渲染对象，用于将视觉对象转换为位图
+                var bitmap = new RenderTargetBitmap((int)(MainListView.ActualWidth * s), (int)(ActualHeight * s), 96d, 96d, PixelFormats.Default);
+                bitmap.Render(visual);
+
+                // 创建 PNG 位图编码器
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                var encoder2 = new PngBitmapEncoder();
+                encoder2.Frames.Add(BitmapFrame.Create(bitmap));
+
+                // 尝试将编码后的 PNG 数据保存到文件中
                 using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
                 {
-                    // 将编码器中的数据写入文件流
                     encoder.Save(stream);
-
-                    // 调用 ShowExportSuccessMessage 方法显示导出成功的提示信息
-                    //await ShowExportSuccessMessage(file);
                 }
                 using (var stream2 = new FileStream(apifilePath, FileMode.Create, FileAccess.Write))
                 {
-                    // 将编码器中的数据写入文件流
                     encoder2.Save(stream2);
-
-                    // 调用 ShowExportSuccessMessage 方法显示导出成功的提示信息
-                    //await ShowExportSuccessMessage(file);
                 }
             }
             catch (Exception ex)
             {
-                // 如果在导出过程中发生异常，将异常信息添加到 SnackbarMessageQueue 中显示
+                // 如果发生异常，表示有困难出现，设置 IsWorking 为 true 来表示有问题
+                ViewModel.IsWorking = true;
+                hasErrorOccurred = true;
+                // 显示失败信息
                 ViewModel.SnackbarMessageQueue.Enqueue($"导出失败：{ex.Message}");
             }
-
-
-
-            // 设置视图模型的 IsWorking 属性为 false，表示导出操作已完成
-            ViewModel.IsWorking = false;
+            finally
+            {
+                // 如果没有发生错误，或者任务完成，确保 IsWorking 为 false
+                if (!hasErrorOccurred)
+                {
+                    // 延时操作，防止频繁更新
+                    await Task.Delay(500);  // 可调整延迟时间
+                    ViewModel.IsWorking = false;
+                }
+            }
         }
+
+        /// <summary>
+        /// 检查系统是否负载过重（CPU 和内存的使用率超过阈值）。
+        /// </summary>
+        /// <returns>如果系统负载过重，则返回 true，否则返回 false。</returns>
+        private bool IsSystemUnderHeavyLoad()
+        {
+            const double cpuThreshold = 80.0;  // 设置 CPU 使用率超过 80% 时视为负载过重
+            const double memoryThreshold = 90.0;  // 设置内存使用率超过 80% 时视为负载过重
+
+            // 获取当前 CPU 使用率
+            var cpuUsage = GetCpuUsagePercentage();
+            // 获取当前内存使用率
+            var memoryUsage = GetMemoryUsagePercentage();
+
+            // 判断是否超过阈值
+            return cpuUsage > cpuThreshold || memoryUsage > memoryThreshold;
+        }
+
+        /// <summary>
+        /// 获取当前 CPU 使用率的百分比。
+        /// </summary>
+        /// <returns>CPU 使用率的百分比（0-100）。</returns>
+        private double GetCpuUsagePercentage()
+        {
+            var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            cpuCounter.NextValue();  // 需要调用一次才能获取正确的值
+            System.Threading.Thread.Sleep(1000);  // 等待 1 秒钟后再次获取数据
+            return cpuCounter.NextValue();
+        }
+
+        /// <summary>
+        /// 获取当前内存使用率的百分比。
+        /// </summary>
+        /// <returns>内存使用率的百分比（0-100）。</returns>
+        private double GetMemoryUsagePercentage()
+        {
+            var memoryCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+            return memoryCounter.NextValue();
+        }
+
+
+
         protected override void OnStateChanged(EventArgs e)
         {
             base.OnStateChanged(e);
