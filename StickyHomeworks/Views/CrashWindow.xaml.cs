@@ -101,7 +101,12 @@ public partial class CrashWindow : MyWindow
 
     private void RestoreLatestSettingsJson()//备份json主要逻辑方法
     {
-        string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+        
+        string folderName = "SA-AutoBackup";
+        string settings_folderName = "Settings-Backups";
+        string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+        string backupDirectory = Path.Combine(currentDirectory, folderName, settings_folderName); // 备份文件夹
+
         string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
 
         // 检查Recover是否为true
@@ -150,8 +155,8 @@ public partial class CrashWindow : MyWindow
         try
         {
             File.Copy(sourceFilePath, destinationFilePath, true);
-            MessageBoxResult result = MessageBox.Show("成功回档 点击确定进行重启", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
+            MessageBoxResult result = MessageBox.Show(sourceFilePath, destinationFilePath, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            //MessageBoxResult result = MessageBox.Show("成功回档 点击确定进行重启", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 RestartApplication();

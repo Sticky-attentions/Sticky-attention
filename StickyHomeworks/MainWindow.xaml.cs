@@ -269,7 +269,7 @@ namespace StickyHomeworks
         {
             // 编辑完成时退出编辑模式
             ExitEditingMode();
-            AutoExport(null, null);
+            AutoExport();
         }
 
         private void ButtonCreateHomework_OnClick(object sender, RoutedEventArgs e)
@@ -359,7 +359,7 @@ namespace StickyHomeworks
                 e.Cancel = true;
                 return;
             }
-            AutoExport(null, null);
+            AutoExport();
             // 保存窗口位置
             SavePos();
             // 保存设置
@@ -395,14 +395,14 @@ namespace StickyHomeworks
                 return;
             ProfileService.Profile.Homeworks.Remove(ViewModel.SelectedHomework);
             ViewModel.IsUpdatingHomeworkSubject = false;
-            AutoExport(null, null);
+            AutoExport();
         }
 
         private void ButtonEditDone_OnClick(object sender, RoutedEventArgs e)
         {
             // 点击编辑完成按钮，关闭抽屉
             ViewModel.IsDrawerOpened = false;
-            AutoExport(null, null);
+            AutoExport();
         }
 
         private void DragBorder_OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -590,7 +590,7 @@ namespace StickyHomeworks
             ViewModel.IsWorking = false;
         }
 
-        private async void AutoExport(object sender, RoutedEventArgs e)
+        private async void AutoExport()
         {
             //修改开始之处
             // 文件夹名称
@@ -728,7 +728,7 @@ namespace StickyHomeworks
             // 当抽屉关闭时，保存设置和用户配置文件
             SettingsService.SaveSettings();
             ProfileService.SaveProfile();
-            AutoExport(null, null);
+            AutoExport();
         }
 
         private void ButtonMore_Click(object sender, RoutedEventArgs e)
@@ -773,7 +773,7 @@ namespace StickyHomeworks
         private void ButtonRestart_OnClick(object sender, RoutedEventArgs e)
         {
             // 点击重启按钮，重启应用程序
-            AutoExport(null, null);
+            AutoExport();
             App.ReleaseLock();
             System.Windows.Forms.Application.Restart();
 
