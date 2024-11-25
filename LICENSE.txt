@@ -1,0 +1,101 @@
+GNU General Public License
+3rd Edition, June 29th, 2007
+
+Copyright (c) 2007 < https://fsf.org/ Free Software Foundation >
+Everyone is allowed to copy and distribute verbatim copies.
+But it is not allowed to be changed.
+
+preface
+
+GNU General Public License is a free and copyrighted license.
+Software and other kinds of works.
+
+Most licenses for software and other practical works are designed.
+Deprive you of the freedom to share and modify your works. By contrast,
+The GNU General Public License is designed to guarantee your freedom.
+Share and change all versions of a program-to make sure it is still free.
+Software for all users. We, the Free Software Foundation, use
+GNU general public license for most of our software; It also applies to
+Any other work published by the author in this way. You can apply it to
+So is your program.
+
+When we talk about free software, we mean freedom, not freedom.
+Price. Our general public license is designed to ensure that you
+Free to distribute copies of free software (and charge a fee)
+They, if you like), you receive the source code or you can get it if you
+To want it, you can change the software or use part of it in the new one.
+Free program, you know you can do these things.
+
+In order to protect your rights, we need to prevent others from denying you.
+These rights either require you to give up these rights. So, you have
+If you distribute copies of the software, or if
+You modify it: the responsibility to respect the freedom of others.
+
+For example, if you distribute copies of such programs, regardless of whether
+Whether it is free or charged, you must pass on the same thing to the recipient.
+The freedom you gained. You must make sure that they receive it, too
+Or you can get the source code. You must show them these terms so that they can
+Know their rights.
+
+Developers who use GNU GPL protect your rights in two steps:
+(1) declare the copyright of the software, and (2) provide you with this license.
+You are given legal permission to copy, distribute and/or modify it.
+
+For the protection of developers and authors, GPL clearly explains
+This free software is not guaranteed. For the sum of users
+For the author's consideration, GPL requires that the revised version be marked as
+Change, so their problems will not be wrongly attributed to
+The author of the previous edition.
+
+Some devices are designed to deny users installation or operation.
+A modified version of their internal software, although the manufacturer
+You can do this. This is fundamentally inconsistent with the purpose.
+Protect users' freedom to change software. systematic
+This pattern of abuse occurs in the field of personal products.
+Use, this is precisely the most unacceptable place. Therefore, we
+I designed this version of GPL to ban those
+Products. If such problems occur in a large number in other fields, we
+Be ready to extend this clause to these domains in future versions.
+According to the need to protect users' freedom.
+
+Finally, every program is constantly threatened by software patents.
+Countries should not allow patents to restrict development and use.
+Software on general-purpose computers, but on those general-purpose computers, we hope
+Avoid the special danger of patent being applied to free programs.
+Make it an effective patent. To prevent this, GPL guarantees that
+Patents cannot be used to make programs non-free.
+
+The exact terms and conditions of reproduction, distribution and dissemination.
+Modify as follows.
+
+condition
+
+0. definition.
+
+"This License" means the 3rd Edition of the GNU General Public License.
+
+"Copyright" also refers to laws similar to copyright, which apply to other types of copyright.
+Works, such as semiconductor masks.
+
+"Program" means any copyrighted work licensed under this Agreement.
+License. Each licensee is called "you". "Licensee" and
+Recipients can be individuals or organizations.
+
+"Modifying" a work means copying or adapting all or part of the work.
+In a way that requires copyright permission, not production.
+Exactly the same. The resulting work is called
+Early works or works based on early works.
+
+"Covered Works" means unmodified programs or works based on
+On the show.
+
+"Spreading" a work means doing anything with it, nothing.
+Permission will make you directly or indirectly responsible.
+Infringement under copyright law applies, but in
+Computer or modify private copy. Communication includes copying,
+Distribute (with or without modification), provide to
+Open, including other activities in some countries.
+
+"Conveying" a work means any means of communication.
+Both parties make or receive copies. Interact with users only in the following ways
+A computer network, if there is no copy transmission, is not transmission.

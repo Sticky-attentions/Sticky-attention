@@ -9,8 +9,8 @@
 	<IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
 	<ApplicationIcon>Assets\AppLogo.ico</ApplicationIcon>
 	<UserSecretsId>0d8165ac-3a9f-437c-8b8e-839225e5a88b</UserSecretsId>
-	<AssemblyVersion>1.1.7.4</AssemblyVersion>
-	<FileVersion>1.1.7.4</FileVersion>
+	<AssemblyVersion>1.1.7.5</AssemblyVersion>
+	<FileVersion>1.1.7.5</FileVersion>
 	<IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -30,6 +30,7 @@
     <None Remove="Assets\AppLogo.png" />
     <None Remove="Assets\Contributiors\HelloWRC%4064w.jpg" />
     <None Remove="Assets\" />
+    <None Remove="Assets\Contributiors\Neuvillette.jpg" />
     <None Remove="Assets\icon\上传 (1).png" />
     <None Remove="Assets\icon\减少.png" />
     <None Remove="Assets\icon\刷新.png" />

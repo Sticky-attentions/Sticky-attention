@@ -6,6 +6,7 @@
                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
                    xmlns:controls="clr-namespace:StickyHomeworks.Controls"
                    xmlns:models="clr-namespace:StickyHomeworks.Models"
+                     xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
                    xmlns:services="clr-namespace:StickyHomeworks.Services"
                    mc:Ignorable="d"
                    d:DataContext="{d:DesignInstance views:SettingsWindow}"
@@ -126,6 +127,9 @@
                 <models:ContributionMember
                AvatarImage="/Assets/Contributiors/Jursin.jpg"
                  Name="Jursin" Description="本项目GitHub主页设计" />
+                <models:ContributionMember
+           AvatarImage="/Assets/Contributiors/Neuvillette.jpg"
+             Name="Neuvillette" Description="贡献大🐂" />
             </ListView>
         </Grid>
 
@@ -652,13 +656,38 @@
                                         </Paragraph>
                                         <!-- 更新日志填写处 -->
                                             <Paragraph>
-                                            1.更换更新服务器
+                                            ◆1.新增托盘 保证每次应用卡死时不需要进任务管理器
                                             <LineBreak/>
-                                            2.添加贡献者（4位）
+                                                ◇--1.托盘新增“设置”“退出”选项（使用托盘退出更快哦#）
                                             <LineBreak/>
-                                            3.更新界面与其他界面的样式改动
+                                            ◆2.添加贡献者1位
                                             <LineBreak/>
-                                            4.自动提取壁纸功能暂时阉割（可能会去除）
+                                            ◆3.奔溃界面改动
+                                            <LineBreak/>
+                                            <emoji:TextBlock Text="◇--1.奔溃界面现在可以上下左右滑动了 🐎🐎再也不用担心崩溃界面异常变大了"></emoji:TextBlock>
+                                            <LineBreak/>
+                                            ◇--2.在奔溃 界面添加回档功能（虽然不知道为啥不起作用
+                                            <LineBreak/>
+                                            ◆4.作业页面退出按钮融合进去
+                                            <LineBreak/>
+                                            ◆5.自动备份迁移至“计算机>我的文档>SA-AutoBackup”里
+                                            <LineBreak/>
+                                            ◇--1.在你每次启动或关闭软件时自动备份
+                                            <LineBreak/>
+                                            ◇--2.完成编辑作业后自动备份一次
+                                            <LineBreak/>
+                                            ◆6.自动清除作业功能完成
+                                            <LineBreak/>
+                                            ◆7.软件保存功能改善
+                                            <LineBreak/>
+                                            ◆8.备份 界面拟定（以后可以用webdav功能来远程查看作业啦
+                                            <LineBreak/>
+                                            ◆9.修复缩小主界面后点击完成编辑作业时的保存问题
+                                            <LineBreak/>
+                                            ◆10.表情包界面（貌似现在作业可以使用系统输入法里的emoji，原理应该是一样的）
+                                            <LineBreak/>
+                                            <emoji:TextBlock Text="◆11.修复某些手🗡的最小化，我特意升级了防止最小化方法，历史最强！"></emoji:TextBlock>
+
                                             <LineBreak/>
                                             <LineBreak/>
                                             <LineBreak/>
@@ -680,6 +709,7 @@
 
                                         <Paragraph Foreground="red">
                                             永远爱中国！
+                                            <emoji:TextBlock Text="Hello! 😁🐱‍🐉lol"/>
                                         </Paragraph>
 
                                     </FlowDocument>
@@ -728,8 +758,6 @@
                                IsOn="{Binding Settings.IsBottom, Mode=TwoWay}"
                                />
 
-
-                                <MenuItem Margin="-12 0" Header="退出" Icon="{materialDesign:PackIcon cancel}" Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}" CommandParameter="{StaticResource ExitConfirm}" />
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
