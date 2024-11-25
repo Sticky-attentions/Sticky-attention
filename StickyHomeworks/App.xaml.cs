@@ -15,6 +15,8 @@ using Microsoft.AppCenter;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 using Sentry;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace StickyHomeworks;
 
@@ -24,6 +26,11 @@ namespace StickyHomeworks;
 public partial class App : AppEx
 {
     private static Mutex? Mutex;
+
+    private NotifyIcon _notifyIcon;
+
+    private MainWindow MainWindow; // 假设您有一个MainWindow变量
+    private ToolStripMenuItem showMainWindowItem; // 定义菜单项
 
     public static string AppVersion => Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 
@@ -92,9 +99,39 @@ public partial class App : AppEx
         MainWindow = GetService<MainWindow>();
         GetService<MainWindow>().Show();
         base.OnStartup(e);
+
+        // 创建托盘图标
+        _notifyIcon = new NotifyIcon
+        {
+            Icon = new Icon(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppLogo.ico")),
+            Text = "StickyHomeworks",
+            Visible = true,
+            ContextMenuStrip = CreateContextMenu()
+        };
+
     }
 
-    private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    // 创建托盘右键菜单
+    private ContextMenuStrip CreateContextMenu()
+            {
+            var contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("退出", null, ExitApplication);
+             return contextMenu;
+            }
+
+
+
+
+    // 退出逻辑
+    private void ExitApplication(object sender, EventArgs e)
+{
+    _notifyIcon.Visible = false;
+    _notifyIcon.Dispose();
+    Current.Shutdown();
+}
+
+
+private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         e.Handled = true;
         var cw = GetService<CrashWindow>();
