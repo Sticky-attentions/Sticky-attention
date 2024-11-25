@@ -4,17 +4,17 @@ using StickyHomeworks.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Media;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
-using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System;
-using System.IO;
+using Image = System.Windows.Controls.Image;           // 为 Image 指定默认命名空间
+using RichTextBox = System.Windows.Controls.RichTextBox; // 为 RichTextBox 指定默认命名空间
+
 
 namespace StickyHomeworks.Views;
 
@@ -313,7 +313,7 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
             }
             else
             {
-                
+
             }
         }
         catch (Exception ex)
@@ -391,7 +391,7 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
 
         // 显示窗口
         Show();
-    IsOpened = true; // 设置窗口状态为已打开
+        IsOpened = true; // 设置窗口状态为已打开
     }
 
 
@@ -412,8 +412,30 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
         if (Top + ActualHeight > screenHeight) Top = screenHeight - ActualHeight;
     }
 
-    private void EmojiButton_Click(object sender, RoutedEventArgs e)
+   private void EmojiButton_Click(object sender, RoutedEventArgs e)
     {
+        // 打开表情包管理窗口
+       var emotionsMgrWindow = new EmotionsMgrWindow(new Core.Context.AppDbContext());
+       emotionsMgrWindow.Owner = this; // 设置当前窗口为 Owner，便于窗口管理
+        emotionsMgrWindow.Show(); // 非模态打开，不阻止用户与其他窗口交互
 
     }
+
+    ////private void EmojiButton_Click(object sender, RoutedEventArgs e)
+    //{
+    //    // 打开表情选择窗口（确保 EmojiPicker 存在）
+    //    var emojiPicker = new EmojiPicker(); // 这里应该找到 EmojiPicker 类型
+    //    if (emojiPicker.ShowDialog() == true)
+    //    {
+    //        // 获取选中的 Emoji
+    //        var selectedEmoji = emojiPicker.SelectedEmoji;
+
+    //        // 插入到 RichTextBox
+    //        if (!string.IsNullOrEmpty(selectedEmoji) && RelatedRichTextBox != null)
+    //        {
+    //            RelatedRichTextBox.AppendText(selectedEmoji);
+    //        }
+    //    }
+    //}
+
 }

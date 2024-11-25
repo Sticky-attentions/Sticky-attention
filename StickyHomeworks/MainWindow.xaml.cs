@@ -622,7 +622,7 @@ namespace StickyHomeworks
 
         private async void AutoExport()
         {
-            // 如果窗口为 null 或者窗口的宽度或高度小于最小值，直接返回
+            // 如果窗口为 null 或者窗口的宽度或高度小于最小值，直接返回（看来没什么用）
             if (Application.Current.MainWindow == null ||
                 Application.Current.MainWindow.ActualWidth < 1 ||
                 Application.Current.MainWindow.ActualHeight < 1)
