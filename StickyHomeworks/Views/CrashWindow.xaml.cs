@@ -104,17 +104,23 @@ public partial class CrashWindow : MyWindow
         }
     }
 
-    private void RestoreLatestSettingsJson()//备份json主要逻辑方法
+    private void RestoreLatestSettingsJson()
     {
-        
         string folderName = "SA-AutoBackup";
         string settings_folderName = "Settings-Backups";
-        string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-        string backupDirectory = Path.Combine(currentDirectory, folderName, settings_folderName); // 备份文件夹
+        string currentDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string backupDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
 
         string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
 
-        // 检查Recover是否为true
+        // 检查备份目录是否存在
+        if (!Directory.Exists(backupDirectory))
+        {
+            MessageBox.Show("备份目录不存在：" + backupDirectory);
+            return;
+        }
+
+        // 检查恢复模式
         if (SettingsService.Settings.Recover)
         {
             RestoreFromUserSelection(backupDirectory, sourceFilePath);
@@ -124,6 +130,7 @@ public partial class CrashWindow : MyWindow
             RestoreFromLatestBackup(backupDirectory, sourceFilePath);
         }
     }
+
 
     private void RestoreFromUserSelection(string backupDirectory, string sourceFilePath)//备份json主要逻辑方法
     {

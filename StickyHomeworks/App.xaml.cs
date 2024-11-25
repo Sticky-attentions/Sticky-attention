@@ -115,10 +115,33 @@ public partial class App : AppEx
     private ContextMenuStrip CreateContextMenu()
             {
             var contextMenu = new ContextMenuStrip();
+        contextMenu.Items.Add("设置", null, Appsettings);
             contextMenu.Items.Add("退出", null, ExitApplication);
-             return contextMenu;
+        return contextMenu;
             }
 
+
+    private void Appsettings(object sender, EventArgs e)
+    {
+        var win = AppEx.GetService<SettingsWindow>();
+        if (!win.IsOpened)
+        {
+            // 如果设置窗口未开启，则开启它
+            win.IsOpened = true;
+            win.Show();
+        }
+        else
+        {
+            // 如果设置窗口已开启但最小化，则恢复它
+            if (win.WindowState == WindowState.Minimized)
+            {
+                win.WindowState = WindowState.Normal;
+            }
+
+            // 激活设置窗口
+            win.Activate();
+        }
+    }
 
 
 

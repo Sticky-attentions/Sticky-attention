@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using DataFormats = System.Windows.DataFormats;
+using System.Runtime.InteropServices;
 using DragEventArgs = System.Windows.DragEventArgs;
 namespace StickyHomeworks
 {
@@ -29,6 +30,53 @@ namespace StickyHomeworks
         public MainViewModel ViewModel { get; set; } = new MainViewModel();
 
         public ProfileService ProfileService { get; }
+        private const int WM_SYSCOMMAND = 0x0112; // 系统命令消息
+        private const int SC_MINIMIZE = 0xF020;   // 最小化命令
+        private const int GWL_STYLE = -16;       // 窗口样式
+        private const int WS_MINIMIZEBOX = 0x00020000; // 最小化按钮
+
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        private static LowLevelKeyboardProc _proc = HookCallback;
+        private static IntPtr _hookID = IntPtr.Zero;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetWindowLong(IntPtr hwnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        private const int WH_KEYBOARD_LL = 13;   // 键盘钩子
+        private const int WM_KEYDOWN = 0x0100;  // 键盘按下
+
+        private const int WM_WINDOWPOSCHANGING = 0x0046;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WINDOWPOS
+        {
+            public IntPtr hwnd;
+            public IntPtr hwndInsertAfter;
+            public int x;
+            public int y;
+            public int cx;
+            public int cy;
+            public uint flags;
+        }
+
+        private const uint SWP_SHOWWINDOW = 0x0040;
+        private const uint SWP_NOZORDER = 0x0004;
+
 
         public SettingsService SettingsService { get; }
 
@@ -76,6 +124,12 @@ namespace StickyHomeworks
             int daysOld = 30; // 设置为30天
             DeleteOldFolders(directoryPath, daysOld);
             BackupSettingsJson();//实现某人没地方放的备份文件
+
+            //低级键盘狗子
+            Loaded += MainWindow_Loaded;
+            Unloaded += MainWindow_Unloaded;
+
+            this.StateChanged += MainWindow_StateChanged;
 
         }
 
@@ -235,11 +289,81 @@ namespace StickyHomeworks
             base.OnInitialized(e);
         }
 
+        //防止最小化开始处
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                // 如果检测到窗口被最小化，立即还原
+                WindowState = WindowState.Normal;
+            }
+        }
+
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // 当窗口加载完成后调用 Automaticclarity
             Automaticclarity();
+            var hwnd = new WindowInteropHelper(this).Handle;
+            var currentStyle = GetWindowLong(hwnd, GWL_STYLE);
+            SetWindowLong(hwnd, GWL_STYLE, currentStyle.ToInt32() & ~WS_MINIMIZEBOX);
+
+            // 注册全局钩子
+            _hookID = SetHook(_proc);
         }
+
+        private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
+        {
+            UnhookWindowsHookEx(_hookID);
+        }
+
+
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_SYSCOMMAND && (wParam.ToInt32() & 0xFFF0) == SC_MINIMIZE)
+            {
+                // 拦截最小化消息
+                handled = true;
+            }
+            else if (msg == WM_WINDOWPOSCHANGING)
+            {
+                var pos = Marshal.PtrToStructure<WINDOWPOS>(lParam);
+                if ((pos.flags & SWP_SHOWWINDOW) == 0 && (pos.flags & SWP_NOZORDER) != 0 && WindowState == WindowState.Minimized)
+                {
+                    // 强制恢复窗口状态
+                    WindowState = WindowState.Normal;
+                    handled = true;
+                }
+            }
+            return IntPtr.Zero;
+        }
+
+        // 设置全局钩子
+        private static IntPtr SetHook(LowLevelKeyboardProc proc)
+        {
+            using (var curProcess = System.Diagnostics.Process.GetCurrentProcess())
+            using (var curModule = curProcess.MainModule)
+            {
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+            }
+        }
+
+        // 钩子回调函数
+        private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            {
+                int vkCode = Marshal.ReadInt32(lParam);
+                // 禁止 Alt+空格 和 Win+D
+                if ((Keyboard.IsKeyDown(Key.LeftAlt) && vkCode == 0x20) || vkCode == 0x5B) // Alt 或 Win 键
+                {
+                    return (IntPtr)1; // 阻止按键
+                }
+            }
+            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+        }
+
+
 
         private void Automaticclarity()
         {
@@ -277,6 +401,15 @@ namespace StickyHomeworks
             AppEx.GetService<HomeworkEditWindow>().SubjectChanged += OnSubjectChanged;
             base.OnContentRendered(e);
         }
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            var hwndSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+            hwndSource.AddHook(WndProc);
+        }
+
+        //防止最小化结束
 
         private void OnSubjectChanged(object? sender, EventArgs e)
         {
@@ -358,6 +491,7 @@ namespace StickyHomeworks
             OpenSettingsWindow();
         }
 
+
         private void OpenSettingsWindow()
         {
             // 获取设置窗口服务
@@ -389,7 +523,7 @@ namespace StickyHomeworks
                 e.Cancel = true;
                 return;
             }
-            AutoExport();
+            //AutoExport();
             // 保存窗口位置
             SavePos();
             // 保存设置
@@ -831,7 +965,6 @@ namespace StickyHomeworks
         private void ButtonRestart_OnClick(object sender, RoutedEventArgs e)
         {
             // 点击重启按钮，重启应用程序
-            AutoExport();
             App.ReleaseLock();
             System.Windows.Forms.Application.Restart();
 
