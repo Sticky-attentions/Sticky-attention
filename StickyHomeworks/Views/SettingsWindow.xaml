@@ -364,7 +364,7 @@
                                 </ely:SettingsCard>
                                 <ely:SettingsCard IconGlyph="Assignment" Header="自动清除作业"
                                     Description="启动时有作业过期时，清除过期的作业。"
-                                  IsOn="{Binding Settings.lsclearance, Mode=TwoWay}" />
+                                  IsOn="{Binding Settings.lsclearances, Mode=TwoWay}" />
 
                                 <ely:IconText Kind="LedOn" Text="其他" Margin="0 0 0 8"/>
                                 

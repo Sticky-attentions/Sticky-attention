@@ -32,7 +32,7 @@ public class Settings : ObservableRecipient
     private double _windowHeight = 800;
     private bool _isBottom = true;
     private bool _clean = true;
-    private bool _lsclearance = true;
+    private bool _lsclearances = false;
     private bool _recover = false;
     private string _title = "作业";
     private double _maxPanelWidth = 350;
@@ -146,13 +146,13 @@ public class Settings : ObservableRecipient
         }
     }
 
-    public bool lsclearance
+    public bool lsclearances
     {
-        get => _lsclearance;
+        get => _lsclearances;
         set
         {
-            if (value == _lsclearance) return;
-            _lsclearance = value;
+            if (value == _lsclearances) return;
+            _lsclearances = value;
             OnPropertyChanged();
         }
     }

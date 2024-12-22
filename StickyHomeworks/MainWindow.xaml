@@ -202,7 +202,9 @@
                                                 <ColumnDefinition/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <!-- 界面缩放 -->
+                                            
+                            <!-- 界面缩放 -->
+                            
                                             <TextBlock Grid.Row="0" 
                                                        Grid.Column="0"
                                                        Text="界面缩放"
@@ -215,7 +217,9 @@
                                                                           VerticalAlignment="Center"
                                                                           Value="{Binding SettingsService.Settings.Scale, Mode=TwoWay}"
                                                                           Step="0.05"/>
-                                            <!-- 背景不透明度 -->
+                                            
+                            <!-- 背景不透明度 -->
+                           
                                             <TextBlock Grid.Row="1" 
                                                        Grid.Column="0"
                                                        Text="背景不透明度"
@@ -234,7 +238,9 @@
                                         <MenuItem Margin="-12 0" Icon="{materialDesign:PackIcon Refresh}" Header="一键清除作业" Click="MenuItemBacktowork_OnClick" IsEnabled="{Binding ViewModel.MenuItemBacktowork}"/>
                                         <MenuItem Margin="-12 0" Icon="{materialDesign:PackIcon CogOutline}" Header="设置" Click="ButtonSettings_OnClick"/>
                                         <MenuItem Margin="-12 0" Header="退出" Icon="{materialDesign:PackIcon cancel}" Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}" CommandParameter="{StaticResource StopConfirm}" />
+
                                         <!--<MenuItem Margin="-12 0" Icon="{materialDesign:PackIcon Restart}" Header="重启" Click="ButtonRestart_OnClick"   />-->
+
                                     </StackPanel>
                                 </Grid>
                             </materialDesign:PopupEx>
@@ -252,7 +258,7 @@
                             <Button Content="{materialDesign:PackIcon FileExport, Size=18}" ToolTip="导出…" 
                                     Visibility="{Binding ViewModel.IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     Click="ButtonExport_OnClick"/>
-                            
+
                             <Button Margin="4 0" Click="ButtonExpandingSwitcher_OnClick">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolForegroundButton}">
@@ -366,7 +372,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <!-- 布置作业 -->
+                <!--布置作业 -->
                 <Button Grid.Row="5"
                         Click="ButtonCreateHomework_OnClick"
                         Visibility="{Binding ViewModel.IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -374,11 +380,16 @@
                     <ely:IconText Kind="Add" Text="布置" />
                 </Button>
 
+               
                 <!-- 保存中 -->
                 <!--<Canvas Grid.Row="1" Margin="0,30,50,0" HorizontalAlignment="Right" VerticalAlignment="Top">
-                    --><!-- File --><!--
+                    -->
+                <!-- File -->
+                <!--
                     <materialDesign:PackIcon Name="PackIconArrowFile" Kind="ArrowDownBold" Width="26" Height="26" Canvas.Top="0"/>
-                    --><!-- File --><!--
+                    -->
+                <!-- File -->
+                <!--
                     <materialDesign:PackIcon Name="PackIconFile" Kind="FileDocument" Width="26" Height="26" Canvas.Top="30"/>
                 </Canvas>-->
 

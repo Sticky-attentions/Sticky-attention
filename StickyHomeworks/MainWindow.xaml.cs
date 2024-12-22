@@ -303,7 +303,11 @@ namespace StickyHomeworks
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // 当窗口加载完成后调用 Automaticclarity
-            Automaticclarity();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Automaticclarity();
+            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+
             var hwnd = new WindowInteropHelper(this).Handle;
             var currentStyle = GetWindowLong(hwnd, GWL_STYLE);
             SetWindowLong(hwnd, GWL_STYLE, currentStyle.ToInt32() & ~WS_MINIMIZEBOX);
@@ -367,16 +371,16 @@ namespace StickyHomeworks
 
         private void Automaticclarity()
         {
-            if (SettingsService.Settings.lsclearance)
+            if (!SettingsService.Settings.lsclearances)
             {
-                MenuItemBacktoworks_OnClick();
+                return ;
 
             }
-            else
-            {
+            // 手动调用事件处理程序
+            MenuItemBacktoworks_OnClick();
 
-            }
         }
+
 
         private void RecoverExpiredHomework()
         {
