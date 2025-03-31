@@ -17,6 +17,7 @@ using Microsoft.AppCenter.Crashes;
 using Sentry;
 using System.Drawing;
 using System.Windows.Forms;
+using static StickyHomeworks.Controls.HomeworkControl;
 
 namespace StickyHomeworks;
 
@@ -29,7 +30,7 @@ public partial class App : AppEx
 
     private NotifyIcon _notifyIcon;
 
-    private MainWindow MainWindow; // 假设您有一个MainWindow变量
+    private MainWindow MainWindow; 
     private ToolStripMenuItem showMainWindowItem; // 定义菜单项
 
     public static string AppVersion => Assembly.GetExecutingAssembly().GetName().Version!.ToString();
@@ -42,7 +43,7 @@ public partial class App : AppEx
             // Tells which project in Sentry to send events to:
             o.Dsn = "https://48c6921f7cf22181e09e16345b65fd77@o4508114075713536.ingest.us.sentry.io/4508114077417472";
             // When configuring for the first time, to see what the SDK is doing:
-            o.Debug = false;
+            o.Debug = true;
             // Set TracesSampleRate to 1.0 to capture 100% of transactions for tracing.
             // We recommend adjusting this value in production.
             o.TracesSampleRate = 1.0;
@@ -52,6 +53,7 @@ public partial class App : AppEx
             o.AutoSessionTracking = true; // default: false
         });
     }
+
 
     void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
@@ -108,18 +110,31 @@ public partial class App : AppEx
             Visible = true,
             ContextMenuStrip = CreateContextMenu()
         };
-
     }
 
     // 创建托盘右键菜单
     private ContextMenuStrip CreateContextMenu()
-            {
-            var contextMenu = new ContextMenuStrip();
-        contextMenu.Items.Add("设置", null, Appsettings);
-            contextMenu.Items.Add("退出", null, ExitApplication);
-        return contextMenu;
-            }
+    {
+        var contextMenu = new ContextMenuStrip();
 
+        // 添加“显示”菜单项，并为其单独绑定事件处理函数
+        var showItem = new ToolStripMenuItem("隐藏或显示界面");
+        showItem.Click += ShowItem_Click; 
+        contextMenu.Items.Add(showItem);
+
+   
+        contextMenu.Items.Add("设置", null, Appsettings);
+        contextMenu.Items.Add("退出", null, ExitApplication);
+
+        return contextMenu;
+    }
+
+    private void ShowItem_Click(object sender, EventArgs e)
+    {
+        var menuItem = sender as ToolStripMenuItem;
+                MainWindow.ToggleWindowExpansion();
+
+    }
 
     private void Appsettings(object sender, EventArgs e)
     {
@@ -148,10 +163,11 @@ public partial class App : AppEx
     // 退出逻辑
     private void ExitApplication(object sender, EventArgs e)
 {
-    _notifyIcon.Visible = false;
-    _notifyIcon.Dispose();
-    Current.Shutdown();
-}
+        Current.Shutdown();
+        // _notifyIcon.Visible = false;
+        // _notifyIcon.Dispose();
+        //Current.Shutdown();
+    }
 
 
 private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
