@@ -18,6 +18,7 @@ using System.Windows.Threading;
 using DataFormats = System.Windows.DataFormats;
 using System.Runtime.InteropServices;
 using DragEventArgs = System.Windows.DragEventArgs;
+using System.Windows.Documents;
 namespace StickyHomeworks
 {
     /// <summary>
@@ -104,15 +105,13 @@ namespace StickyHomeworks
             ViewModel.PropertyChanging += ViewModelOnPropertyChanging;
             // 设置窗口的数据上下文为当前窗口实例
             DataContext = this;
-            // 注册窗口关闭事件（可能无效）
-            Closing += OnApplicationExit;
             focusObserverService.FocusChanged += FocusObserverServiceOnFocusChanged;
             this.Loaded += MainWindow_Loaded;
             ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
             ViewModel.PropertyChanging += ViewModelOnPropertyChanging;
             DataContext = this;
             Application.Current.Exit += OnApplicationExits;
-            //删除那一坨备份
+
             string folderName = "SA-AutoBackup";
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
             string directoryPath = Path.Combine(currentDirectory, folderName); // 备份文件夹
@@ -125,7 +124,7 @@ namespace StickyHomeworks
             DeleteOldFolders(directoryPath, daysOld);
             BackupSettingsJson();//实现某人没地方放的备份文件
 
-            //低级键盘狗子
+            //低级键盘勾子
             Loaded += MainWindow_Loaded;
             Unloaded += MainWindow_Unloaded;
 
@@ -133,25 +132,16 @@ namespace StickyHomeworks
 
         }
 
-        //1.事件处理器来保存窗口位置 防止用户手动从任务管理器关闭软件而导致的无法保存位置（可能无效）
-        private void OnApplicationExit(object sender, CancelEventArgs e)
+        public MainWindow()
         {
-            // 保存窗口位置
-            SavePos();
-            // 保存设置
-            SettingsService.SaveSettings();
-            // 保存用户配置文件
-            ProfileService.SaveProfile();
         }
-        //2.事件处理器来保存窗口位置 防止用户手动从任务管理器关闭软件而导致的无法保存位置（可能无效）
+
         private void OnApplicationExits(object sender, ExitEventArgs e)
         {
             // 保存窗口位置
             SavePos();
             // 保存设置
             SettingsService.SaveSettings();
-            // 保存用户配置文件
-            ProfileService.SaveProfile();
         }
 
 
@@ -220,7 +210,7 @@ namespace StickyHomeworks
             Top = SettingsService.Settings.WindowY / dpi;
             Width = SettingsService.Settings.WindowWidth / dpi;
             Height = SettingsService.Settings.WindowHeight / dpi;
-           
+
         }
 
         private void SavePos()
@@ -373,7 +363,7 @@ namespace StickyHomeworks
         {
             if (!SettingsService.Settings.lsclearances)
             {
-                return ;
+                return;
 
             }
             // 手动调用事件处理程序
@@ -798,7 +788,7 @@ namespace StickyHomeworks
                 // 等待一个任务调度周期，确保 UI 操作完成后再进行后续操作
                 await Task.Yield();
 
-           
+
 
                 // 文件基本名称
                 string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
@@ -876,7 +866,22 @@ namespace StickyHomeworks
         }
 
 
-
+        public void ToggleWindowExpansion()
+        {
+            SavePos();
+            ViewModel.IsExpanded = !ViewModel.IsExpanded;
+            if (ViewModel.IsExpanded)
+            {
+                SizeToContent = SizeToContent.Manual;
+                SetPos();
+            }
+            else
+            {
+                ViewModel.IsUnlocked = false;
+                SizeToContent = SizeToContent.Height;
+                Width = Math.Min(ActualWidth, 350);
+            }
+        }
 
 
 
@@ -1060,9 +1065,10 @@ namespace StickyHomeworks
             ViewModel.IsClosing = true;
             Close();
         }
+
+        // 备份的主要逻辑
         private void BackupSettingsJson()
         {
-            //删除那一坨备份
             string folderName = "SA-AutoBackup";
             string settings_folderName = "Settings-Backups";
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
@@ -1096,5 +1102,6 @@ namespace StickyHomeworks
                 MessageBox.Show($"无法备份Settings.json: {ex.Message}");
             }
         }
+
     }
-}
+    }
