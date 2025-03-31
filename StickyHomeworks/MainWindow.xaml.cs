@@ -877,7 +877,22 @@ namespace StickyHomeworks
 
 
 
-
+        public void ToggleWindowExpansion()
+        {
+            SavePos();
+            ViewModel.IsExpanded = !ViewModel.IsExpanded; // 切换展开状态
+            if (ViewModel.IsExpanded)
+            {
+                SizeToContent = SizeToContent.Manual;
+                SetPos();
+            }
+            else
+            {
+                ViewModel.IsUnlocked = false;
+                SizeToContent = SizeToContent.Height;
+                Width = Math.Min(ActualWidth, 350);
+            }
+        }
 
 
 
