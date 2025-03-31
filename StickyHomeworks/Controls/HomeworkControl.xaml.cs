@@ -16,19 +16,10 @@ public partial class HomeworkControl : UserControl
     public static readonly DependencyProperty HomeworkProperty = DependencyProperty.Register(
         nameof(Homework), typeof(Homework), typeof(HomeworkControl), new PropertyMetadata(default(Homework)));
 
-    public event Action<RichTextBox> RichTextBoxLoaded;
-
     public Homework Homework
     {
         get { return (Homework)GetValue(HomeworkProperty); }
         set { SetValue(HomeworkProperty, value); }
-
-    }
-
-    public HomeworkControl()
-    {
-        InitializeComponent();
-        this.Loaded += (sender, e) => RichTextBoxLoaded?.Invoke(RichTextBox);
     }
 
     public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register(
@@ -59,7 +50,10 @@ public partial class HomeworkControl : UserControl
         set { SetValue(IsEditingProperty, value); }
     }
 
-
+    public HomeworkControl()
+    {
+        InitializeComponent();
+    }
 
     private void IsEditingChanged(bool value)
     {
