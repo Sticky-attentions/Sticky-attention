@@ -192,51 +192,55 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
     {
         if (ViewModel.IsRestoringSelection)
             return;
-        Debug.WriteLine("selection changed!");
-        if (RelatedRichTextBox.Selection.Start.Paragraph != null)
-            ViewModel.SelectedParagraph = RelatedRichTextBox.Selection.Start.Paragraph;
-        // Update selection
-        var s = RelatedRichTextBox.Selection;
-        if (!MainWindow.IsActive)
+
+        var selection = RelatedRichTextBox.Selection;
+        if (selection.IsEmpty)
         {
-            if (ViewModel is not { BeforeTextPointerStart: not null, BeforeTextPointerEnd: not null })
-                return;
-            ViewModel.IsRestoringSelection = true;
-            RelatedRichTextBox.Selection.Select(ViewModel.BeforeTextPointerStart, ViewModel.BeforeTextPointerEnd);
-            ViewModel.IsRestoringSelection = false;
             return;
         }
-        ViewModel.Selection = s;
-        ViewModel.BeforeTextPointerStart = s.Start;
-        ViewModel.BeforeTextPointerEnd = s.End;
+
+        UpdateViewModelFromSelection(selection);
+    }
+
+    private void UpdateViewModelFromSelection(TextRange selection)
+    {
         ViewModel.IsRestoringSelection = true;
-        Debug.WriteLine("selection updated!");
-        var w = s.GetPropertyValue(TextElement.FontWeightProperty);
-        if (w is FontWeight weight)
+
+        // 更新字体加粗状态
+        var fontWeight = selection.GetPropertyValue(TextElement.FontWeightProperty) as FontWeight?;
+        if (fontWeight.HasValue)
         {
-            ViewModel.IsBold = weight >= FontWeights.Bold;
+            ViewModel.IsBold = fontWeight.Value >= FontWeights.Bold;
         }
 
-        ViewModel.IsItalic = Equals(s.GetPropertyValue(TextElement.FontStyleProperty), FontStyles.Italic);
-        if (s.GetPropertyValue(Paragraph.TextDecorationsProperty) is TextDecorationCollection decorations)
+        // 更新字体样式（斜体）
+        ViewModel.IsItalic = Equals(selection.GetPropertyValue(TextElement.FontStyleProperty), FontStyles.Italic);
+
+        // 更新下划线和删除线状态
+        var decorations = selection.GetPropertyValue(Paragraph.TextDecorationsProperty) as TextDecorationCollection;
+        if (decorations != null)
         {
             ViewModel.IsUnderlined = decorations.Contains(TextDecorations.Underline[0]);
             ViewModel.IsStrikeThrough = decorations.Contains(TextDecorations.Strikethrough[0]);
         }
 
-        if (s.GetPropertyValue(TextElement.ForegroundProperty) is SolidColorBrush fg)
+        // 更新文本颜色
+        if (selection.GetPropertyValue(TextElement.ForegroundProperty) is SolidColorBrush fg)
         {
             ViewModel.TextColor = fg.Color;
         }
-        if (s.GetPropertyValue(TextElement.FontFamilyProperty) is FontFamily font)
+
+        // 更新字体和字号
+        if (selection.GetPropertyValue(TextElement.FontFamilyProperty) is FontFamily font)
         {
             ViewModel.Font = font;
         }
 
-        if (s.GetPropertyValue(TextElement.FontSizeProperty) is double fontSize)
+        if (selection.GetPropertyValue(TextElement.FontSizeProperty) is double fontSize)
         {
             ViewModel.FontSize = fontSize;
         }
+
         ViewModel.IsRestoringSelection = false;
     }
 
@@ -293,34 +297,50 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
 
     private void BackupSettingsJson()
     {
+        // 定义备份文件夹路径
+        string folderName = "SA-AutoBackup";
+        string settings_folderName = "Settings-Backups";
+        string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+        string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
+
+        // 源文件路径
         string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
-        string backupDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
-        string backupFilePath = Path.Combine(backupDirectory, $"Settings_{DateTime.Now:yyyyMMddHHmmss}.json");
 
         try
         {
             // 确保源文件存在
             if (File.Exists(sourceFilePath))
             {
-                // 如果Backups文件夹不存在，则创建它
+                // 生成基于时间戳的文件夹名称
+                string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
+                string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
+
+                // 如果备份文件夹不存在，则创建
                 if (!Directory.Exists(backupDirectory))
                 {
                     Directory.CreateDirectory(backupDirectory);
                 }
 
-                // 复制文件到新的文件名
+                // 定义备份文件路径（保持文件名不变）
+                string backupFilePath = Path.Combine(backupDirectory, "Settings.json");
+
+                // 复制文件到备份文件夹
                 File.Copy(sourceFilePath, backupFilePath, true);
+
+                Console.WriteLine($"Settings.json 已成功备份到: {backupFilePath}");
             }
             else
             {
-
+                Console.WriteLine("Settings.json 文件不存在");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"无法备份Settings.json: {ex.Message}");
+            MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
         }
     }
+
+
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -398,44 +418,45 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
 
     private void CenterWindowOnScreen()
     {
-        var screenWidth = SystemParameters.PrimaryScreenWidth;
-        var screenHeight = SystemParameters.PrimaryScreenHeight;
+        var screen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)Left, (int)Top));
+        var workingArea = screen.WorkingArea;
 
-        // 计算窗口的中心位置
-        Left = (screenWidth - ActualWidth) / 2;
-        Top = (screenHeight - ActualHeight) / 2;
+        Left = workingArea.X + (workingArea.Width - ActualWidth) / 2;
+        Top = workingArea.Y + (workingArea.Height - ActualHeight) / 2;
 
         // 确保窗口在屏幕内
-        if (Left < 0) Left = 0;
-        if (Top < 0) Top = 0;
-        if (Left + ActualWidth > screenWidth) Left = screenWidth - ActualWidth;
-        if (Top + ActualHeight > screenHeight) Top = screenHeight - ActualHeight;
+        Left = Math.Max(workingArea.X, Math.Min(Left, workingArea.Right - ActualWidth));
+        Top = Math.Max(workingArea.Y, Math.Min(Top, workingArea.Bottom - ActualHeight));
     }
 
-   private void EmojiButton_Click(object sender, RoutedEventArgs e)
-    {
-        // 打开表情包管理窗口
-       var emotionsMgrWindow = new EmotionsMgrWindow(new Core.Context.AppDbContext());
-       emotionsMgrWindow.Owner = this; // 设置当前窗口为 Owner，便于窗口管理
-        emotionsMgrWindow.Show(); // 非模态打开，不阻止用户与其他窗口交互
-
-    }
-
-    ////private void EmojiButton_Click(object sender, RoutedEventArgs e)
+    //private void EmojiButton_Click(object sender, RoutedEventArgs e)
     //{
-    //    // 打开表情选择窗口（确保 EmojiPicker 存在）
-    //    var emojiPicker = new EmojiPicker(); // 这里应该找到 EmojiPicker 类型
-    //    if (emojiPicker.ShowDialog() == true)
+    //    if (Application.Current.Windows.OfType<EmotionsMgrWindow>().Any())
     //    {
-    //        // 获取选中的 Emoji
-    //        var selectedEmoji = emojiPicker.SelectedEmoji;
-
-    //        // 插入到 RichTextBox
-    //        if (!string.IsNullOrEmpty(selectedEmoji) && RelatedRichTextBox != null)
-    //        {
-    //            RelatedRichTextBox.AppendText(selectedEmoji);
-    //        }
+    //        // 如果窗口已存在，直接激活
+    //        var existingWindow = Application.Current.Windows.OfType<EmotionsMgrWindow>().First();
+    //        existingWindow.Activate();
+    //    }
+    //    else
+    //    {
+    //        // 创建新窗口
+    //        var emotionsMgrWindow = new EmotionsMgrWindow(new Core.Context.AppDbContext());
+    //        emotionsMgrWindow.Owner = this;
+    //        emotionsMgrWindow.Show();
     //    }
     //}
+
+    private void EmojiButton_Click(object sender, RoutedEventArgs e)
+    {
+        var emojiPicker = new EmotionsMgrWindow();
+        if (emojiPicker.ShowDialog() == true)
+        {
+            var selectedEmoji = emojiPicker.SelectedEmoji;
+            if (!string.IsNullOrEmpty(selectedEmoji) && RelatedRichTextBox != null)
+            {
+                RelatedRichTextBox.AppendText(selectedEmoji);
+            }
+        }
+    }
 
 }

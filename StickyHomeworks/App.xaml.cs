@@ -18,6 +18,7 @@ using Sentry;
 using System.Drawing;
 using System.Windows.Forms;
 using static StickyHomeworks.Controls.HomeworkControl;
+using System.Runtime.InteropServices;
 
 namespace StickyHomeworks;
 
@@ -43,7 +44,11 @@ public partial class App : AppEx
             // Tells which project in Sentry to send events to:
             o.Dsn = "https://48c6921f7cf22181e09e16345b65fd77@o4508114075713536.ingest.us.sentry.io/4508114077417472";
             // When configuring for the first time, to see what the SDK is doing:
-            o.Debug = true;
+#if DEBUG
+            o.Debug = true; 
+#else
+            o.Debug = false;
+#endif
             // Set TracesSampleRate to 1.0 to capture 100% of transactions for tracing.
             // We recommend adjusting this value in production.
             o.TracesSampleRate = 1.0;
@@ -52,8 +57,26 @@ public partial class App : AppEx
             // Enable auto session tracking
             o.AutoSessionTracking = true; // default: false
         });
+
     }
 
+
+    [DllImport("kernel32.dll")]
+    private static extern bool AllocConsole();
+
+    [DllImport("kernel32.dll")]
+    private static extern bool FreeConsole();
+
+    
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+        // 在退出时释放控制台
+#if DEBUG
+        FreeConsole();
+#endif
+    }
 
     void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
@@ -78,6 +101,17 @@ public partial class App : AppEx
 
         }
 
+        base.OnStartup(e);
+
+        // 调试打开控制台
+#if DEBUG
+        AllocConsole();
+        Console.WriteLine("调试模式");
+#else
+          
+                FreeConsole();
+#endif
+
         Host = Microsoft.Extensions.Hosting.Host.
             CreateDefaultBuilder().
             UseContentRoot(AppContext.BaseDirectory).
@@ -101,6 +135,11 @@ public partial class App : AppEx
         MainWindow = GetService<MainWindow>();
         GetService<MainWindow>().Show();
         base.OnStartup(e);
+
+        
+    
+
+
 
         // 创建托盘图标
         _notifyIcon = new NotifyIcon

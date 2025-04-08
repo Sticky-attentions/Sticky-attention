@@ -6,6 +6,8 @@ using StickyHomeworks.Models;
 using Microsoft.Win32;
 using System.Text.Json;
 using StickyHomeworks.Services;
+using Microsoft.Extensions.Hosting.Internal;
+using System.Diagnostics;
 
 
 namespace StickyHomeworks.Views;
@@ -84,6 +86,8 @@ public partial class CrashWindow : MyWindow
         TextBoxCrashInfo.Focus();
         TextBoxCrashInfo.SelectAll();
         TextBoxCrashInfo.Copy();
+        TextBoxCrashInfo.SelectionStart = 0;
+        TextBoxCrashInfo.SelectionLength = 0;
     }
 
 
@@ -131,8 +135,7 @@ public partial class CrashWindow : MyWindow
         }
     }
 
-
-    private void RestoreFromUserSelection(string backupDirectory, string sourceFilePath)//备份json主要逻辑方法
+    private void RestoreFromUserSelection(string backupDirectory, string sourceFilePath)
     {
         OpenFileDialog openFileDialog = new OpenFileDialog
         {
@@ -148,47 +151,83 @@ public partial class CrashWindow : MyWindow
         }
     }
 
-    private void RestoreFromLatestBackup(string backupDirectory, string sourceFilePath) //备份json主要逻辑方法
+    private void RestoreFromLatestBackup(string backupDirectory, string sourceFilePath)
     {
-        // 获取备份目录中所有的设置文件
-        string[] backupFiles = Directory.GetFiles(backupDirectory, "Settings_*.json");
+        // 获取备份目录中所有的子文件夹
+        string[] backupFolders = Directory.GetDirectories(backupDirectory);
 
-        if (backupFiles.Length > 1)
+        if (backupFolders.Length == 0)
         {
-            // 如果备份文件大于一个，按时间排序获取前两个文件
-            var sortedFiles = backupFiles.OrderByDescending(f => new FileInfo(f).LastWriteTime).Take(2).ToList();
+            MessageBox.Show("没有找到备份文件夹。");
+            return;
+        }
 
-            // 调用恢复文件的方法并传递最新两个备份文件
-            foreach (var file in sortedFiles)
-            {
-                RestoreSettingsFile(file, sourceFilePath); //将备份文件恢复
-            }
-        }
-        else
+        // 按文件夹名称（时间戳）排序，找到最新的文件夹
+        var latestBackupFolder = backupFolders
+            .Select(f => new DirectoryInfo(f))
+            .OrderByDescending(d => d.Name)
+            .FirstOrDefault();
+
+        if (latestBackupFolder == null)
         {
-            MessageBox.Show("没有找到备份文件。");
+            MessageBox.Show("没有找到有效的备份文件夹。");
+            return;
         }
+
+        // 在最新的备份文件夹中查找 Settings.json 文件
+        string settingsBackupPath = Path.Combine(latestBackupFolder.FullName, "Settings.json");
+
+        if (!File.Exists(settingsBackupPath))
+        {
+            MessageBox.Show("最新的备份文件夹中没有找到 Settings.json 文件。");
+            return;
+        }
+
+        // 调用恢复文件的方法
+        RestoreSettingsFile(settingsBackupPath, sourceFilePath);
     }
 
-    private void RestoreSettingsFile(string sourceFilePath, string destinationFilePath) //备份json主要逻辑方法
+    private void RestoreSettingsFile(string sourceFilePath, string destinationFilePath)
     {
         try
         {
-            // 检查目标文件是否存在，如果存在则先删除
-            if (File.Exists(destinationFilePath))
-            {
-                File.Delete(destinationFilePath);
-            }
-
-            // 将源文件复制到目标目录并重命名
-            File.Copy(sourceFilePath, destinationFilePath, true);
-
             // 弹出消息框，询问用户是否确认恢复备份
             MessageBoxResult result = MessageBox.Show("是否恢复备份的 Settings.json 文件？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
-                RestartApplication();  // 恢复成功后重启应用
+                // 动态生成批处理文件内容
+                string batchContent = $@"
+                    @echo off
+
+                    REM 获取参数
+                    set sourceFile={sourceFilePath}
+                    set destinationFile={destinationFilePath}
+
+                    REM 删除目标文件（如果存在）
+                    if exist ""%destinationFile%"" (
+                    del ""%destinationFile%""
+                    )
+
+                    REM 复制源文件到目标位置
+                    copy ""%sourceFile%"" ""%destinationFile%"" > nul
+
+                    REM 重启应用（可选）
+                    start "" ""{AppDomain.CurrentDomain.FriendlyName}""
+
+                    REM 退出批处理
+                    exit
+                    ";
+
+                // 生成临时批处理文件
+                string tempBatchPath = Path.Combine(Path.GetTempPath(), "RestoreSettings.bat");
+                File.WriteAllText(tempBatchPath, batchContent);
+
+                // 启动批处理文件
+                Process.Start(tempBatchPath);
+
+                // 退出应用
+                RestartApplication(false);  // 恢复成功后重启应用，不保存设置
             }
             else
             {
@@ -202,14 +241,10 @@ public partial class CrashWindow : MyWindow
             MessageBox.Show($"回档失败：{ex.Message}");
         }
     }
-
-
-    private void RestartApplication()
+    private void RestartApplication(bool saveSettings = true)
     {
-        App.ReleaseLock();
-        System.Windows.Forms.Application.Restart();
-        Application.Current.Shutdown();
-        Close();
+        // 直接退出程序，不保存任何内容
+        Environment.Exit(0);
     }
 
     private void CrashWindow_OnClosed(object? sender, CancelEventArgs e)

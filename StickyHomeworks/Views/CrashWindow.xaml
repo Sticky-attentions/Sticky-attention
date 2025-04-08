@@ -29,10 +29,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <ScrollViewer Grid.ColumnSpan="1000" Grid.Row="0" >
-            <TextBlock Grid.Row="0" TextWrapping="Wrap" Grid.ColumnSpan="2" Margin="0,0,0,20">
-                <Run Text=":(" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="32" FontWeight="Bold"/>
+            <TextBlock Grid.Row="0" TextWrapping="Wrap" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                <Run Text="❌" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="45" FontWeight="Bold"/>
                 <LineBreak/>
-                <Run Text="应用完了……" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="20" FontWeight="Bold"/>
+                <TextBlock Grid.Row="0" TextWrapping="Wrap" Grid.ColumnSpan="2" Margin="0,15,0,0">
+                <Run Text="应用发生了无法解决的问题……" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="15" FontWeight="Bold" />
+                </TextBlock>
                 <LineBreak/>
                 <LineBreak/>
                 <Run Text="应用发生了无法解决的错误，请将此错误反馈至开发人员！"/>

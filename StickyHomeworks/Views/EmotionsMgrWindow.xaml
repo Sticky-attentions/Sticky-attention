@@ -4,22 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
-        xmlns:ci="clr-namespace:StickyHomeworks"
         mc:Ignorable="d"
-        Title="表情包管理" Height="450" Width="800"
-        MinWidth="600" MinHeight="400"
+        Title="选择表情" Height="500" Width="600"
         WindowStyle="None"
         AllowsTransparency="True"
-        Icon="/Assets/AppLogo.png"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{StaticResource MiSans}">
+        Background="{DynamicResource MaterialDesignPaper}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <!-- 顶部工具栏 -->
+            <RowDefinition Height="*"/>
+            <!-- 表情列表 -->
             <RowDefinition Height="Auto"/>
+            <!-- 按钮区域 -->
         </Grid.RowDefinitions>
+
         <!-- 顶部工具栏 -->
         <materialDesign:ColorZone Grid.Row="0" Padding="12" Mode="PrimaryMid" MouseLeftButtonDown="Border_MouseLeftButtonDown">
             <Grid>
@@ -27,33 +26,61 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="表情包管理" Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                <TextBlock Text="选择表情" Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                            VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button ToolTip="关闭窗口" Click="Buttonoff_Click"
+                    <Button ToolTip="关闭窗口" Click="ButtonClose_Click"
                         Style="{StaticResource MaterialDesignToolForegroundButton}">
                         <materialDesign:PackIcon Kind="Close" Width="24" Height="24"/>
                     </Button>
-
-
                 </StackPanel>
             </Grid>
         </materialDesign:ColorZone>
-        <!-- 主内容 -->
-        <ListBox Grid.Row="1" ItemsSource="{Binding Emotions}" SelectedItem="{Binding SelectedEmotion}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
 
-             
+        <!-- 表情列表 -->
+        <TabControl Grid.Row="1" x:Name="EmojiTabControl">
+            <!-- 笑脸和情感 -->
+            <TabItem Header="笑脸和情感">
+                <ListBox x:Name="HumanEmojiListBox"
+                         SelectionMode="Single"
+                         SelectionChanged="EmojiListBox_SelectionChanged"
+                         ItemsSource="{Binding HumanEmojis}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="24" Margin="10" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+            <!-- 学习和作业 -->
+            <TabItem Header="学习和作业">
+                <ListBox x:Name="SchoolEmojiListBox"
+                         SelectionMode="Single"
+                         SelectionChanged="EmojiListBox_SelectionChanged"
+                         ItemsSource="{Binding SchoolEmojis}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontSize="24" Margin="10" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+        </TabControl>
 
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        <!-- 状态栏 -->
-        <StatusBar Grid.Row="2" Background="{DynamicResource MaterialDesignPaper}" >
-                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-       <emoji:TextBlock FontSize="24" Text="Hello! 💖😁🐨🐱‍🐉👩🏿‍👩🏻‍👦🏽 lol"/>
-        </StatusBar> 
-       
+        <!-- 按钮 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16">
+            <Button Content="确定" Click="ButtonOk_Click" IsDefault="True" Width="75" Margin="0,0,8,0" />
+            <Button Content="取消" Click="ButtonCancel_Click" IsCancel="True" Width="75" />
+        </StackPanel>
     </Grid>
 </Window>

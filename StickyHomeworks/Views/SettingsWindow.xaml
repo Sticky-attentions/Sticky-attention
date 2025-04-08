@@ -720,7 +720,7 @@
                     </TabItem>
 
 
-                    <TabItem Header="备份(没写)">
+                    <TabItem Header="备份">
                         <ScrollViewer>
                             <StackPanel Style="{StaticResource SettingsPageStackPanelStyle}">
                                 <ely:IconText Kind="AccountPending" Text="备份" Margin="0 0 0 8"/>
@@ -808,7 +808,7 @@
                     </TabItem>
 
                     <!-- 标签 -->
-                    <TabItem Header="快捷">
+                    <TabItem Header="标签">
                         <Grid Margin="12" MaxWidth="750">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />

@@ -76,7 +76,7 @@
                                     SelectedDate="{Binding MainWindow.ViewModel.SelectedHomework.DueTime}"/>
                         </Grid>
                         <Separator Margin="-6 6"/>
-                        <ely:IconText Kind="Oar" Text="快捷文字"/>
+                        <ely:IconText Kind="LabelMultiple" Text="快捷标签"/>
                         <ListBox Grid.Row="1"
                              ItemsSource="{Binding SettingsService.Settings.Tags}"
                              Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineListBox}">

@@ -12,12 +12,11 @@ public class SettingsService : ObservableRecipient, IHostedService
     private Settings _settings = new();
     private System.Timers.Timer? _saveTimer;
 
-
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await SaveSettingsAsync();
+        // 不保存设置，直接退出
+        ExitWithoutSaving();
     }
-
 
     private void ScheduleSaveSettings()
     {
@@ -37,7 +36,6 @@ public class SettingsService : ObservableRecipient, IHostedService
         PropertyChanged += OnPropertyChanged;
         Settings.PropertyChanged += (o, args) => OnSettingsChanged?.Invoke(o, args);
         LoadSettingsSafeAsync();
-        //applicationLifetime.ApplicationStopping.Register(SaveSettings);
         OnSettingsChanged += OnOnSettingsChanged;
     }
 
@@ -53,7 +51,6 @@ public class SettingsService : ObservableRecipient, IHostedService
             string settingsPath = "./Settings.json";
             if (!File.Exists(settingsPath))
             {
-                // 如果文件不存在，可以记录日志或者抛出一个自定义异常
                 return;
             }
 
@@ -67,50 +64,37 @@ public class SettingsService : ObservableRecipient, IHostedService
                     Settings = settings;
                 }
             }
-            else
-            {
-                // 如果反序列化失败，可以记录日志或者抛出一个自定义异常
-            }
         }
         catch (Exception ex)
         {
-            // 记录异常信息，可以是日志或者错误报告
-            // 根据异常类型决定是否需要进一步处理或抛出
+            // 记录异常信息
         }
     }
 
-    // 在类中定义一个用于锁定的对象
     private readonly object _lockObject = new object();
 
     public void SaveSettings()
     {
         var filePath = "./Settings.json";
-        var settings = Settings; // 假设Settings是你的设置对象
+        var settings = Settings;
 
-        // 尝试打开文件以检查是否有其他进程正在使用它
         try
         {
             using (var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
-                // 如果无法获取独占访问权限，则会抛出IOException
-                // 在这里，我们不做任何事情，因为如果文件被成功打开，意味着没有其他进程在使用它
             }
         }
         catch (IOException)
         {
-            // 如果发生IOException，意味着文件可能正在被另一个进程使用
-            // 我们可以在这里添加逻辑来等待一段时间后重试
-            Thread.Sleep(1000); // 等待1秒
+            Thread.Sleep(1000);
         }
 
-        // 现在尝试写入文件
         try
         {
             File.WriteAllText(filePath, JsonSerializer.Serialize(settings));
         }
         catch (IOException ex)
         {
-            // 处理写入时的异常，例如日志记录或通知用户
             Console.WriteLine("Error writing to file: " + ex.Message);
         }
     }
@@ -127,11 +111,9 @@ public class SettingsService : ObservableRecipient, IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        SaveSettings(); // 调用同步保存方法
+        SaveSettings();
         return Task.CompletedTask;
     }
-
-
 
     public async Task SaveSettingsAsync()
     {
@@ -148,5 +130,12 @@ public class SettingsService : ObservableRecipient, IHostedService
             _settings = value;
             OnPropertyChanged();
         }
+    }
+
+    // 新增方法：直接退出而不保存
+    public void ExitWithoutSaving()
+    {
+        // 直接退出程序，不保存任何内容
+        Environment.Exit(0);
     }
 }

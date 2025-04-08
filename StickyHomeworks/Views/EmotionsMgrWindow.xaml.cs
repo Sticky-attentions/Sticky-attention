@@ -1,35 +1,84 @@
-﻿using StickyHomeworks.Core.Context;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace StickyHomeworks.Views;
 
-/// <summary>
-/// EmotionsMgrWindow.xaml 的交互逻辑
-/// </summary>
-public partial class EmotionsMgrWindow : Window
+public partial class EmotionsMgrWindow : Window, INotifyPropertyChanged
 {
-    public AppDbContext DbContext { get; set; }
-    public string SelectedEmoji { get; private set; }
+    // 笑脸和情感表情
+    public ObservableCollection<string> HumanEmojis { get; } = new ObservableCollection<string>
+    {
+        "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
+        "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚",
+        "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩",
+        "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣",
+        "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬",
+        "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗",
+        "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯",
+        "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐",
+        "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈",
+        "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾",
+        "🤖", "🎃"
+    };
 
-    public EmotionsMgrWindow(AppDbContext dbContext)
+    // 学习和作业表情
+    public ObservableCollection<string> SchoolEmojis { get; } = new ObservableCollection<string>
+    {
+        "📚", "✏️", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝",
+        "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝",
+        "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝",
+        "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝",
+        "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝",
+        "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝", "📝"
+    };
+
+    public string? SelectedEmoji { get; private set; }
+
+    public EmotionsMgrWindow()
     {
         InitializeComponent();
         DataContext = this;
-        DbContext = dbContext;
     }
 
-    private void Buttonoff_Click(object sender, RoutedEventArgs e)
+    private void EmojiListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        this.Close();
-    }
-
-    private void Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-    {
-        if (e.LeftButton == MouseButtonState.Pressed)
+        if (sender is ListBox listBox && listBox.SelectedItem is string emoji)
         {
-            DragMove();
+            SelectedEmoji = emoji;
         }
+    }
+
+    private void ButtonOk_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
+        Close();
+    }
+
+    private void ButtonCancel_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
+    }
+
+    private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        DragMove();
+    }
+
+    private void ButtonClose_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
