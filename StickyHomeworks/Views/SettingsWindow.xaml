@@ -27,12 +27,18 @@
                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
                    xmlns:ely="http://github.com/HelloWRC/ElysiaFramework"
                    xmlns:ci="clr-namespace:StickyHomeworks"
-                   xmlns:views="clr-namespace:StickyHomeworks.Views">
+                   xmlns:views="clr-namespace:StickyHomeworks.Views"
+                    xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml">
     <Window.Resources>
         <Style TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}"
                x:Key="NotificationsListBoxItemStyle">
         </Style>
-        
+
+        <Style x:Key="CustomMarkdownStyle" TargetType="FlowDocument">
+            <Setter Property="FontFamily" Value="MiSans"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+
+        </Style>
 
         <ely:ColorToColorPickerBrushConverter x:Key="ColorToColorPickerBrushConverter"/>
         <Style TargetType="StackPanel" x:Key="SettingsPageStackPanelStyle">
@@ -230,7 +236,7 @@
                 <ely:SettingsCard IconGlyph="Eject" Header="选择回档文件"
                        Description="回档按钮允许用户选择的json备份文件。"
                        IsOn="{Binding Settings.Recover, Mode=TwoWay}" />
-
+                
             </StackPanel>
         </ScrollViewer>
         <ely:BooleanToBooleanReConverter x:Key="BooleanToBooleanReConverter" />
@@ -247,8 +253,32 @@
             </StackPanel>
         </StackPanel>
 
-       
 
+        <StackPanel x:Key="ForceUpate" VerticalAlignment="Stretch" Margin="40" MaxWidth="400">
+            <TextBlock Margin="20 0 0 5" Style="{StaticResource MaterialDesignHeadline6TextBlock}">
+        <Run Text="强制更新"/>
+            </TextBlock>
+            <TextBlock Margin="35 10 0 2" TextWrapping="Wrap">
+        <Run Text="确定吗？"/>
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Margin="0 8 0 0" HorizontalAlignment="Right">
+                <Button Content="确定" HorizontalAlignment="Right" Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" 
+              Click="ButtonUpate_OnClick">
+                    <Button.CommandParameter>
+                        <system:Boolean xmlns:system="clr-namespace:System;assembly=mscorlib">
+                            True
+                        </system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+                <Button Content="取消" HorizontalAlignment="Right" Style="{DynamicResource MaterialDesignFlatButton}" Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" Margin="6 0 0 0">
+                    <Button.CommandParameter>
+                        <system:Boolean xmlns:system="clr-namespace:System;assembly=mscorlib">
+                            False
+                        </system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+        </StackPanel>
 
 
 
@@ -625,13 +655,13 @@
                                  <Run Text="未获取更新" x:Name="versionStatusTextBlock" FontSize="38" FontWeight="Medium" />
                                  <LineBreak />
                                 <TextBlock Margin="-1" >
-                                      <Run         x:Name="versionStatusTexts"      Text="版本：" FontWeight="Bold" FontSize="18"/>
+                                      <Run         x:Name="versionStatusTexts"      Text="当前版本：" FontWeight="Bold" FontSize="18"/>
                                       <Run        x:Name="versionStatusText"       Text="{x:Static ci:App.AppVersion}" FontSize="18" />
                                   </TextBlock>
                                      <LineBreak />
                                      <LineBreak />
                                      <ProgressBar x:Name="pbDown" Height="5" Width="500" Margin="0 -3 0 0" IsIndeterminate="True"  Minimum="0"  Maximum="100"  />
-                                      <Label Name="labelProgress" Content="+➊➊➍➎➊➍-" Visibility="Collapsed" />
+                                      <Label Name="labelProgress" Content="加载中" Visibility="Collapsed" />
                                             </TextBlock>
                                             <WrapPanel>
                                                 <Button HorizontalAlignment="Left" Margin="10" 
@@ -646,75 +676,27 @@
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
-                                <FlowDocumentScrollViewer ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                       IsSelectionEnabled="False"
-                                       PreviewMouseWheel="UIElement_OnPreviewMouseWheel"
-                                       ContextMenu="{x:Null}">
-                                    <FlowDocument FontFamily="{StaticResource MiSans}">
-                                        <Paragraph Style="{StaticResource MarkdownHeadline1Style}">
-                                            更新日志
-                                        </Paragraph>
-                                        <!-- 更新日志填写处 -->
-                                            <Paragraph>
-                                            ◆1.新增托盘 保证每次应用卡死时不需要进任务管理器
-                                            <LineBreak/>
-                                                ◇--1.托盘新增“设置”“退出”选项（使用托盘退出更快哦#）
-                                            <LineBreak/>
-                                            ◆2.添加贡献者1位
-                                            <LineBreak/>
-                                            ◆3.奔溃界面改动
-                                            <LineBreak/>
-                                            <emoji:TextBlock Text="◇--1.奔溃界面现在可以上下左右滑动了 🐎🐎再也不用担心崩溃界面异常变大了"></emoji:TextBlock>
-                                            <LineBreak/>
-                                            ◇--2.在奔溃 界面添加回档功能（虽然不知道为啥不起作用
-                                            <LineBreak/>
-                                            ◆4.作业页面退出按钮融合进去
-                                            <LineBreak/>
-                                            ◆5.自动备份迁移至“计算机>我的文档>SA-AutoBackup”里
-                                            <LineBreak/>
-                                            ◇--1.在你每次启动或关闭软件时自动备份
-                                            <LineBreak/>
-                                            ◇--2.完成编辑作业后自动备份一次
-                                            <LineBreak/>
-                                            ◆6.自动清除作业功能完成
-                                            <LineBreak/>
-                                            ◆7.软件保存功能改善
-                                            <LineBreak/>
-                                            ◆8.备份 界面拟定（以后可以用webdav功能来远程查看作业啦
-                                            <LineBreak/>
-                                            ◆9.修复缩小主界面后点击完成编辑作业时的保存问题
-                                            <LineBreak/>
-                                            ◆10.表情包界面（貌似现在作业可以使用系统输入法里的emoji，原理应该是一样的）
-                                            <LineBreak/>
-                                            <emoji:TextBlock Text="◆11.修复某些手🗡的最小化，我特意升级了防止最小化方法，历史最强！"></emoji:TextBlock>
+                                <emoji:TextBlock ColorBlend="True" FontSize="20" Text="更新日志🏷️" HorizontalAlignment="Center"/>
+                                <mdxam:MarkdownScrollViewer MarkdownStyle="{StaticResource CustomMarkdownStyle}" xml:space="preserve" FontFamily="Microsoft YaHei" FontSize="16">
+***             
+***                        
+>
 
-                                            <LineBreak/>
-                                            <LineBreak/>
-                                            <LineBreak/>
-
-
-                                        </Paragraph>
-                                        <Paragraph>
-                                        <!--    <Button HorizontalAlignment="Left" Margin="6"
-                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                 Click="ButtonContributors_OnClick">
-                                                <ely:IconText Kind="PeopleGroupOutline" Text="贡献人员" />
-                                            </Button>-->
-                                            <!--<Button HorizontalAlignment="Left" Margin="6"
-                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                 Click="ButtonThirdPartyLibs_OnClick">
-                                                <ely:IconText Kind="PackageVariant" Text="第三方库" />
-                                            </Button>-->
-                                        </Paragraph>
-
-                                        <Paragraph Foreground="red">
-                                            永远爱中国！
-                                            <emoji:TextBlock Text="Hello! 😁🐱‍🐉lol"/>
-                                        </Paragraph>
-
-                                    </FlowDocument>
-                                </FlowDocumentScrollViewer>
-
+## **【修复🐛】**
+* 修复图片导出时的问题。
+* 修复出错时选择文件无法替换的问题。
+* 修改部分界面的协调性。
+* 修复托盘退出时无法保存位置的问题。
+* 更新界面优化。
+                
+##**【添加🚀】**
+* 添加选择表情界面（早期开发）。
+* 添加调试时的控制台，在发布时将自动关闭。
+* 添加托盘'显示与隐藏‘。
+* 添加应用初始化时进行对比当前窗口参数是否与setting一致。
+* 添加强制更新功能（实验性）。
+* 
+                                </mdxam:MarkdownScrollViewer>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -1024,6 +1006,8 @@
                                                      IsPopupOpen="{Binding ViewModel.IsPopupMenuOpened, Mode=TwoWay}">
                                 <StackPanel>
                                     <MenuItem Icon="{materialDesign:PackIcon Code}" Header="实验性功能…" Click="MenuItemExperimentalSettings_OnClick"/>
+                                    <MenuItem Header="强制更新" Icon="{materialDesign:PackIcon ArrowUpBox}" Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}" CommandParameter="{StaticResource ForceUpate}" />
+
                                 </StackPanel>
                             </materialDesign:PopupBox>
                         </StackPanel>

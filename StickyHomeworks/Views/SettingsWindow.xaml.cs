@@ -16,6 +16,12 @@ using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using StickyHomeworks;
 using Microsoft.AppCenter.Crashes;
+using MdXaml;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Net.Http;
+
+
 
 namespace StickyHomeworks.Views;
 /// <summary>
@@ -30,6 +36,9 @@ public partial class SettingsWindow : MyWindow
     private const string IconPath03 = "/Assets/icon/叹号 (1).png"; // 有最新版本且下载完毕时的图标
     private const string DownloadFilePath = "update.zip";
     private const string DecompressionFolder = "Decompression update";
+
+    private Markdown engine;
+    private FlowDocument document;
 
     public SettingsViewModel ViewModel
     {
@@ -75,6 +84,9 @@ public partial class SettingsWindow : MyWindow
         };
         var style = (Style)FindResource("NotificationsListBoxItemStyle");
         //style.Setters.Add(new EventSetter(ListBoxItem.MouseDoubleClickEvent, new System.Windows.Input.MouseEventHandler(EventSetter_OnHandler)));
+
+        // 初始化 Markdown 引擎
+        engine = new Markdown();
     }
 
     private void SettingsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -86,7 +98,7 @@ public partial class SettingsWindow : MyWindow
     protected override void OnInitialized(EventArgs e)
     {
         //RefreshMonitors();
-        //var r = new StreamReader(Application.GetResourceStream(new Uri("/Assets/LICENSE.txt", UriKind.Relative))!.Stream);
+        //var r = new StreamReader(Application.GetResourceStream(new Uri(" / Assets/LICENSE.txt", UriKind.Relative))!.Stream);
         //ViewModel.License = r.ReadToEnd();
         base.OnInitialized(e);
     }
@@ -569,5 +581,82 @@ public partial class SettingsWindow : MyWindow
     }
 
 
+    private async void ButtonUpate_OnClick(object sender, RoutedEventArgs e)
+    {
+        using (var client = new HttpClient())
+        {
+            var xmlContent = await client.GetStringAsync(UpdateUrl); // 使用HttpClient获取更新信息
+            var updateInfo = ParseUpdateInfoFromXml(xmlContent);
+
+           
+
+            versionStatusTextBlock.Text = "正在执行策略！";
+            versionStatusText.Text = $"最新版本: {updateInfo.Version}"; // 显示最新版本号
+            versionStatusTexts.Text = "";
+            versionStatusText.FontSize = 18;
+            versionStatusText.FontWeight = FontWeights.Bold;
+
+            versionStatusTextBlock.FontSize = 40;
+            versionStatusTextBlock.FontWeight = FontWeights.Bold;
+            statusIcon.Source = new BitmapImage(new Uri(IconPath01, UriKind.Relative));
+
+             // 开始下载
+            await DownloadUpdate(client, updateInfo.Url);
+
+
+            // 下载完毕
+            Dispatcher.Invoke(() =>
+            {
+                versionStatusTextBlock.Text = "下载完成，请安装最新版本！";
+                statusIcon.Source = new BitmapImage(new Uri(IconPath03, UriKind.Relative));
+
+                var result = MessageBox.Show("您确定要运行更新程序吗？", "Sticky-attention", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    // 用户点击了“是”，执行安装逻辑
+                    UnzipFile(DownloadFilePath, DecompressionFolder);
+                    RunExecutableAndCloseApp(Path.Combine(DecompressionFolder, "Sticky-attention.exe"));
+                    Close();
+                }
+
+                // 隐藏进度条和标签
+                pbDown.Visibility = Visibility.Collapsed;
+                labelProgress.Visibility = Visibility.Collapsed;
+            });
+        }
+    }
+
+    private async Task DownloadUpdate(HttpClient client, string url)
+    {
+        using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+            long totalBytes = response.Content.Headers.ContentLength ?? -1;
+            using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+            using (FileStream fileStream = new FileStream("update.zip", FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+            {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                long totalBytesRead = 0;
+                DateTime startTime = DateTime.Now;
+                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+
+                    // 计算下载速度
+                    DateTime now = DateTime.Now;
+                    TimeSpan elapsedTime = now - startTime;
+                    double seconds = elapsedTime.TotalSeconds;
+                    double speed = totalBytesRead / (1024 * seconds); // 以KB/s为单位
+
+                    // 输出到控制台
+                    Console.WriteLine($"下载进度: {totalBytesRead}/{totalBytes}, 速度: {speed:F2} KB/s");
+                }
+            }
+        }
+    }
 }
+
 
