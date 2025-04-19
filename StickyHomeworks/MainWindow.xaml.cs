@@ -18,6 +18,9 @@ using System.Windows.Threading;
 using DataFormats = System.Windows.DataFormats;
 using System.Runtime.InteropServices;
 using DragEventArgs = System.Windows.DragEventArgs;
+using StickyHomeworks;
+using static StickyHomeworks.App;
+using System.Text.Json;
 namespace StickyHomeworks
 {
     /// <summary>
@@ -30,10 +33,10 @@ namespace StickyHomeworks
         public MainViewModel ViewModel { get; set; } = new MainViewModel();
 
         public ProfileService ProfileService { get; }
-        private const int WM_SYSCOMMAND = 0x0112; // 系统命令消息
-        private const int SC_MINIMIZE = 0xF020;   // 最小化命令
-        private const int GWL_STYLE = -16;       // 窗口样式
-        private const int WS_MINIMIZEBOX = 0x00020000; // 最小化按钮
+        private const int WM_SYSCOMMAND = 0x0112; 
+        private const int SC_MINIMIZE = 0xF020; 
+        private const int GWL_STYLE = -16;      
+        private const int WS_MINIMIZEBOX = 0x00020000; 
 
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private static LowLevelKeyboardProc _proc = HookCallback;
@@ -112,6 +115,8 @@ namespace StickyHomeworks
             ViewModel.PropertyChanging += ViewModelOnPropertyChanging;
             DataContext = this;
             Application.Current.Exit += OnApplicationExits;
+            LogHelper.Info($"主界面初始化完成！" +
+                $"");
             //删除那一坨备份
             string folderName = "SA-AutoBackup";
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
@@ -141,7 +146,6 @@ namespace StickyHomeworks
             int expectedX = settings.WindowX;
             int expectedY = settings.WindowY;
 
-            // 延迟 5 秒
             DispatcherTimer timer = new DispatcherTimer();
             timer.Tick += (sender, e) =>
             {
@@ -152,11 +156,11 @@ namespace StickyHomeworks
                 // 比较位置
                 if (Math.Abs(actualX - expectedX) < 1 && Math.Abs(actualY - expectedY) < 1)
                 {
-                    Console.WriteLine("窗口位置与设置一致");
+                    LogHelper.Info("窗口位置与设置一致");
                 }
                 else
                 {
-                    Console.WriteLine($"窗口位置不一致，设置位置: ({expectedX}, {expectedY})，实际位置: ({actualX}, {actualY})");
+                    LogHelper.Warning($"窗口位置不一致，设置位置: ({expectedX}, {expectedY})，实际位置: ({actualX}, {actualY})");
                 }
 
                 timer.Stop();
@@ -348,6 +352,22 @@ namespace StickyHomeworks
 
             // 注册全局钩子
             _hookID = SetHook(_proc);
+
+    
+         
+            if (SettingsService.Settings.Lockwindow)
+            {
+              
+                ButtonLock.Visibility = Visibility.Visible;
+            }
+            else
+            { 
+                
+                ButtonLock.Visibility = Visibility.Collapsed;
+            }
+
+
+            
         }
 
         private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
@@ -371,6 +391,7 @@ namespace StickyHomeworks
                     // 强制恢复窗口状态
                     WindowState = WindowState.Normal;
                     handled = true;
+                    LogHelper.Info($"成功");
                 }
             }
             return IntPtr.Zero;
@@ -393,9 +414,10 @@ namespace StickyHomeworks
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 // 禁止 Alt+空格 和 Win+D
-                if ((Keyboard.IsKeyDown(Key.LeftAlt) && vkCode == 0x20) || vkCode == 0x5B) // Alt 或 Win 键
+                if ((Keyboard.IsKeyDown(Key.LeftAlt) && vkCode == 0x20)) // Alt 或 Win 键
                 {
                     return (IntPtr)1; // 阻止按键
+                    LogHelper.Info($"成功");
                 }
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
@@ -921,6 +943,7 @@ namespace StickyHomeworks
                 ViewModel.IsWorking = true;
                 // 显示失败信息
                 ViewModel.SnackbarMessageQueue.Enqueue($"导出失败：{ex.Message}");
+                LogHelper.Error($"导出失败：{ex.Message}");
             }
             finally
             {
@@ -1121,6 +1144,7 @@ namespace StickyHomeworks
                 homeworkEditWindow.Top = top;
 
                 Debug.WriteLine($"Repositioned HomeworkEditWindow to: Left={left}, Top={top}");
+               LogHelper.Info($"编辑窗口OK");
             }
             catch (Exception e)
             {
@@ -1136,46 +1160,118 @@ namespace StickyHomeworks
         }
         private void BackupSettingsJson()
         {
-            // 定义备份文件夹路径
-            string folderName = "SA-AutoBackup";
-            string settings_folderName = "Settings-Backups";
-            string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-            string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
-
-            // 源文件路径
-            string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
-
             try
             {
+                // 定义备份文件夹路径
+                string folderName = "SA-AutoBackup";
+                string settings_folderName = "Settings-Backups";
+                string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
+
+                // 源文件路径
+                string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+
                 // 确保源文件存在
-                if (File.Exists(sourceFilePath))
+                if (!File.Exists(sourceFilePath))
                 {
-                    // 生成基于时间戳的文件夹名称
-                    string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
-                    string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
-
-                    // 如果备份文件夹不存在，则创建
-                    if (!Directory.Exists(backupDirectory))
-                    {
-                        Directory.CreateDirectory(backupDirectory);
-                    }
-
-                    // 定义备份文件路径（保持文件名不变）
-                    string backupFilePath = Path.Combine(backupDirectory, "Settings.json");
-
-                    // 复制文件到备份文件夹
-                    File.Copy(sourceFilePath, backupFilePath, true);
-
-                    Console.WriteLine($"Settings.json 已成功备份到: {backupFilePath}");
+                    LogHelper.Warning("Settings.json 文件不存在");
+                    MessageBox.Show("Settings.json 文件不存在");
+                    return;
                 }
-                else
+
+                // 生成基于时间戳的文件夹名称
+                string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
+                string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
+
+                // 如果备份文件夹不存在，则创建
+                if (!Directory.Exists(backupDirectory))
                 {
-                    Console.WriteLine("Settings.json 文件不存在");
+                    Directory.CreateDirectory(backupDirectory);
                 }
+
+                // 定义备份文件路径（保持文件名不变）
+                string backupFilePath = Path.Combine(backupDirectory, "Settings.json");
+
+                // 复制文件到备份文件夹
+                File.Copy(sourceFilePath, backupFilePath, true);
+
+                // 验证备份文件的完整性
+                if (!ValidateBackupFile(backupFilePath))
+                {
+                    LogHelper.Error("setting文件已损坏。");
+                    MessageBox.Show("setting文件已损坏。");
+                    return;
+                }
+
+                LogHelper.Info($"Settings.json 已成功备份到: {backupFilePath}");
             }
             catch (Exception ex)
             {
+                LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
                 MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
+            }
+        }
+
+        private bool ValidateBackupFile(string backupFilePath)
+        {
+            try
+            {
+                // 检查文件是否存在
+                if (!File.Exists(backupFilePath))
+                {
+                    return false;
+                }
+
+                // 检查文件大小是否为0
+                if (new FileInfo(backupFilePath).Length == 0)
+                {
+                    return false;
+                }
+
+                // 检查文件内容是否有效
+                using (StreamReader reader = new StreamReader(backupFilePath))
+                {
+                    string content = reader.ReadToEnd();
+                    // 尝试解析 JSON 内容
+                    JsonDocument.Parse(content);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error($"验证备份文件 {backupFilePath} 失败：{ex.Message}");
+                return false;
+            }
+        }
+
+
+
+
+        private void ButtonLock_Click(object sender, RoutedEventArgs e)
+        {
+            // 判断遮罩层是否已经显示
+            if (OverlayGrid.Visibility == Visibility.Visible)
+            {
+                // 遮罩层已显示，隐藏遮罩层并切换按钮图标为 "lock"
+                OverlayGrid.Visibility = Visibility.Collapsed;
+                ButtonLock.Content = new PackIcon { Kind = PackIconKind.Lock, Width = 18 };
+                ButtonLock.ToolTip = "锁定页面";
+
+               
+                LogHelper.Info($"遮罩已隐藏");
+                LogHelper.Info($"窗口位置: 左={Left}, 顶={Top}");
+            }
+            else
+            {
+           
+                OverlayGrid.Visibility = Visibility.Visible;
+                ButtonLock.Content = new PackIcon { Kind = PackIconKind.LockOff, Width = 18 };
+                ButtonLock.ToolTip = "解锁页面";
+
+
+                LogHelper.Info($"遮罩已显示");
+                LogHelper.Info($"窗口位置: 左={Left}, 顶={Top}");
             }
         }
     }

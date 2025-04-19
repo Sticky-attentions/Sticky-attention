@@ -236,7 +236,11 @@
                 <ely:SettingsCard IconGlyph="Eject" Header="选择回档文件"
                        Description="回档按钮允许用户选择的json备份文件。"
                        IsOn="{Binding Settings.Recover, Mode=TwoWay}" />
-                
+                <TextBlock Margin="1" />
+                <ely:SettingsCard IconGlyph="lockoff" Header="锁定窗口"
+                       Description="（实验性）开启后主窗口会显示锁定按钮，点击后将锁定主界面，无法触摸和编辑作业。"
+                       IsOn="{Binding Settings.Lockwindow, Mode=TwoWay}" />
+
             </StackPanel>
         </ScrollViewer>
         <ely:BooleanToBooleanReConverter x:Key="BooleanToBooleanReConverter" />
@@ -684,9 +688,10 @@
 
 ## **【修复🐛】**
 * 修复图片导出时的问题。
-* 修复出错时选择文件无法替换的问题。
+* 修复出错时报错界面选择文件无法替换的问题。
 * 修改部分界面的协调性。
 * 修复托盘退出时无法保存位置的问题。
+*修复自动选择备份文件功能。
 * 更新界面优化。
                 
 ##**【添加🚀】**
@@ -695,7 +700,10 @@
 * 添加托盘'显示与隐藏‘。
 * 添加应用初始化时进行对比当前窗口参数是否与setting一致。
 * 添加强制更新功能（实验性）。
-* 
+* 添加了锁定界面功能（实验性）。
+*添加备份检测功能。  
+*新增控制台LogHelper输出。
+*启动应用时，调试窗口将每隔5秒打印一次内存使用量。
                                 </mdxam:MarkdownScrollViewer>
                             </StackPanel>
                         </ScrollViewer>

@@ -12,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static StickyHomeworks.App;
 using Image = System.Windows.Controls.Image;           // 为 Image 指定默认命名空间
 using RichTextBox = System.Windows.Controls.RichTextBox; // 为 RichTextBox 指定默认命名空间
 
@@ -293,6 +294,7 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
         EditingFinished?.Invoke(this, EventArgs.Empty);
         BackupSettingsJson();
         AppEx.GetService<ProfileService>().SaveProfile();
+        Close();
     }
 
     private void BackupSettingsJson()
@@ -327,16 +329,17 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
                 // 复制文件到备份文件夹
                 File.Copy(sourceFilePath, backupFilePath, true);
 
-                Console.WriteLine($"Settings.json 已成功备份到: {backupFilePath}");
+                LogHelper.Info($"Settings.json 已成功备份到: {backupFilePath}");
             }
             else
             {
-                Console.WriteLine("Settings.json 文件不存在");
+                LogHelper.Warning("Settings.json 文件不存在");
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
+            LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
         }
     }
 

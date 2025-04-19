@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Windows.Media;
 using WindowsShortcutFactory;
 using File = System.IO.File;
+using StickyHomeworks;
 
 namespace StickyHomeworks.Models;
 
@@ -30,6 +31,7 @@ public class Settings : ObservableRecipient
     private double _windowY = 0;
     private double _windowWidth = 400;
     private double _windowHeight = 800;
+    private bool _lockwindow = false;
     private bool _isBottom = true;
     private bool _clean = true;
     private bool _lsclearances = false;
@@ -134,6 +136,21 @@ public class Settings : ObservableRecipient
             _recover = value;
             OnPropertyChanged();
         }
+    }
+
+    public bool Lockwindow
+    {
+        get => _lockwindow;
+        set
+        {
+            if (value == _lockwindow) return;
+            _lockwindow = value;
+            OnPropertyChanged();
+        
+        }
+
+
+
     }
     public string Title
     {

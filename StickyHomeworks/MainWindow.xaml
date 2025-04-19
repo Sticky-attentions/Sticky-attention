@@ -28,6 +28,8 @@
         Deactivated="MainWindow_OnDeactivated"
         AllowDrop="True"
         DragEnter="MainWindow_OnDragEnter">
+    
+    
     <Window.Style>
         <Style TargetType="Window">
             <Style.Triggers>
@@ -43,6 +45,8 @@
         </Style>
     </Window.Style>
     <Window.Resources>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <Style x:Key="MarkdownParagraphBaseStyle" TargetType="Paragraph">
             <Setter Property="FontWeight" Value="Regular"/>
             <Setter Property="FontSize" Value="20"/>
@@ -178,6 +182,12 @@
                             <Button Content="{materialDesign:PackIcon Menu, Size=18}" ToolTip="更多选项…" 
                                     Visibility="{Binding ViewModel.IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     Click="ButtonMore_Click"/>
+
+                            <Button Name="ButtonLock"
+                                Content="{materialDesign:PackIcon lock, Size=18}"
+                                ToolTip="锁定页面"
+                                Click="ButtonLock_Click"
+                                Visibility="{Binding Settings.Lockwindow, Converter={StaticResource BoolToVisibilityConverter}}" />
                             <materialDesign:PopupEx x:Name="PopupExAdvanced"
                                                     StaysOpen="False"
                                                     AllowsTransparency="True"
@@ -445,6 +455,13 @@
                 <!-- Snackbar -->
                 <materialDesign:Snackbar Grid.Row="0" Grid.RowSpan="3"
                                          MessageQueue="{Binding ViewModel.SnackbarMessageQueue}"/>
+
+                <Grid Name="OverlayGrid" Visibility="Hidden">
+                    <Grid.Background>
+                        <SolidColorBrush Color="#80000000" />
+                    </Grid.Background>
+                  
+                </Grid>
             </Grid>
         </materialDesign:DrawerHost>
     </materialDesign:DialogHost>

@@ -20,6 +20,7 @@ using MdXaml;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Net.Http;
+using static StickyHomeworks.App;
 
 
 
@@ -69,7 +70,9 @@ public partial class SettingsWindow : MyWindow
     public SettingsWindow(WallpaperPickingService wallpaperPickingService,
         SettingsService settingsService)
     {
+     
         WallpaperPickingService = wallpaperPickingService;
+        LogHelper.Info($"设置界面 OPEN！");
 
         InitializeComponent();
         DataContext = this;
@@ -652,7 +655,7 @@ public partial class SettingsWindow : MyWindow
                     double speed = totalBytesRead / (1024 * seconds); // 以KB/s为单位
 
                     // 输出到控制台
-                    Console.WriteLine($"下载进度: {totalBytesRead}/{totalBytes}, 速度: {speed:F2} KB/s");
+                    LogHelper.Info($"下载进度: {totalBytesRead}/{totalBytes}, 速度: {speed:F2} KB/s");
                 }
             }
         }

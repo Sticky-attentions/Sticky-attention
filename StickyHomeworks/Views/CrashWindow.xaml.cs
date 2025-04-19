@@ -8,6 +8,7 @@ using System.Text.Json;
 using StickyHomeworks.Services;
 using Microsoft.Extensions.Hosting.Internal;
 using System.Diagnostics;
+using static StickyHomeworks.App;
 
 
 namespace StickyHomeworks.Views;
@@ -60,7 +61,7 @@ public partial class CrashWindow : MyWindow
     protected override void OnContentRendered(EventArgs e)
     {
         IsShowed = true;
-        SettingsService.LoadSettingsSafeAsync(); // 在窗口显示时加载设置
+        SettingsService.LoadSettingsSafeAsync(); 
         base.OnContentRendered(e);
     }
 
@@ -153,38 +154,117 @@ public partial class CrashWindow : MyWindow
 
     private void RestoreFromLatestBackup(string backupDirectory, string sourceFilePath)
     {
-        // 获取备份目录中所有的子文件夹
-        string[] backupFolders = Directory.GetDirectories(backupDirectory);
-
-        if (backupFolders.Length == 0)
+        try
         {
-            MessageBox.Show("没有找到备份文件夹。");
-            return;
+            // 获取备份目录中所有的子文件夹
+            string[] backupFolders = Directory.GetDirectories(backupDirectory);
+
+            if (backupFolders.Length == 0)
+            {
+                LogHelper.Warning("没有找到备份文件夹。");
+                MessageBox.Show("没有找到备份文件夹。");
+                return;
+            }
+
+            // 按文件夹名称（时间戳）排序，找到最新的文件夹
+            var latestBackupFolder = backupFolders
+                .Select(f => new DirectoryInfo(f))
+                .OrderByDescending(d => d.Name)
+                .FirstOrDefault();
+
+            if (latestBackupFolder == null)
+            {
+                LogHelper.Warning("没有找到有效的备份文件夹。");
+                MessageBox.Show("没有找到有效的备份文件夹。");
+                return;
+            }
+
+            // 在最新的备份文件夹中查找 Settings.json 文件
+            string settingsBackupPath = Path.Combine(latestBackupFolder.FullName, "Settings.json");
+
+            if (!File.Exists(settingsBackupPath))
+            {
+                LogHelper.Warning("最新的备份文件夹中没有找到 Settings.json 文件。");
+                MessageBox.Show("最新的备份文件夹中没有找到 Settings.json 文件。");
+                return;
+            }
+
+            // 验证备份文件的完整性
+            if (!ValidateBackupFile(settingsBackupPath))
+            {
+                LogHelper.Error("备份文件已损坏。");
+                MessageBox.Show("备份文件已损坏,请再试一次。");
+                try
+                {
+                    File.Delete(settingsBackupPath);
+                    LogHelper.Info("已删除损坏的备份文件。");
+
+                    // 删除整个备份文件夹
+                    try
+                    {
+                        Directory.Delete(Path.GetDirectoryName(settingsBackupPath), true);
+                        LogHelper.Info("已删除包含损坏备份文件的整个文件夹。");
+                        MessageBox.Show($"已删除包含损坏备份文件的整个文件夹。" +
+                            $"请重试数遍！");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.Error($"删除备份文件夹时出错: {ex.Message}");
+                        MessageBox.Show($"删除备份文件夹时出错: {ex.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Error($"删除损坏的备份文件时出错: {ex.Message}");
+                    MessageBox.Show($"删除损坏的备份文件时出错: {ex.Message}");
+                }
+
+                return;
+            }
+
+            // 调用恢复文件的方法
+            RestoreSettingsFile(settingsBackupPath, sourceFilePath);
         }
-
-        // 按文件夹名称（时间戳）排序，找到最新的文件夹
-        var latestBackupFolder = backupFolders
-            .Select(f => new DirectoryInfo(f))
-            .OrderByDescending(d => d.Name)
-            .FirstOrDefault();
-
-        if (latestBackupFolder == null)
+        catch (Exception ex)
         {
-            MessageBox.Show("没有找到有效的备份文件夹。");
-            return;
+            LogHelper.Error($"RestoreFromLatestBackup 失败：{ex.Message}");
+            MessageBox.Show($"回档失败：{ex.Message}");
         }
+    }
 
-        // 在最新的备份文件夹中查找 Settings.json 文件
-        string settingsBackupPath = Path.Combine(latestBackupFolder.FullName, "Settings.json");
-
-        if (!File.Exists(settingsBackupPath))
+    private bool ValidateBackupFile(string backupFilePath)
+    {
+        try
         {
-            MessageBox.Show("最新的备份文件夹中没有找到 Settings.json 文件。");
-            return;
-        }
+            // 检查文件是否存在
+            if (!File.Exists(backupFilePath))
+            {
+                return false;
+            }
 
-        // 调用恢复文件的方法
-        RestoreSettingsFile(settingsBackupPath, sourceFilePath);
+            // 检查文件大小是否为0
+            if (new FileInfo(backupFilePath).Length == 0)
+            {
+                return false;
+            }
+
+            // 检查文件内容是否有效（例如，检查 JSON 文件的格式）
+            // 根据实际情况实现文件内容验证逻辑
+            // 以下是一个简单的 JSON 文件验证示例
+            using (StreamReader reader = new StreamReader(backupFilePath))
+            {
+                string content = reader.ReadToEnd();
+                // 尝试解析 JSON 内容
+                JsonDocument.Parse(content);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Error($"验证备份文件 {backupFilePath} 失败：{ex.Message}");
+            return false;
+        }
     }
 
     private void RestoreSettingsFile(string sourceFilePath, string destinationFilePath)
@@ -196,51 +276,36 @@ public partial class CrashWindow : MyWindow
 
             if (result == MessageBoxResult.Yes)
             {
-                // 动态生成批处理文件内容
-                string batchContent = $@"
-                    @echo off
+                // 确保目标文件的目录存在
+                string destinationDirectory = Path.GetDirectoryName(destinationFilePath);
+                if (!Directory.Exists(destinationDirectory))
+                {
+                    Directory.CreateDirectory(destinationDirectory);
+                }
 
-                    REM 获取参数
-                    set sourceFile={sourceFilePath}
-                    set destinationFile={destinationFilePath}
+                // 复制文件到目标位置，覆盖现有文件
+                File.Copy(sourceFilePath, destinationFilePath, true);
 
-                    REM 删除目标文件（如果存在）
-                    if exist ""%destinationFile%"" (
-                    del ""%destinationFile%""
-                    )
+                LogHelper.Info("设置文件已成功恢复。");
+                MessageBox.Show("设置文件已成功恢复，请手动启动Sa。");
 
-                    REM 复制源文件到目标位置
-                    copy ""%sourceFile%"" ""%destinationFile%"" > nul
-
-                    REM 重启应用（可选）
-                    start "" ""{AppDomain.CurrentDomain.FriendlyName}""
-
-                    REM 退出批处理
-                    exit
-                    ";
-
-                // 生成临时批处理文件
-                string tempBatchPath = Path.Combine(Path.GetTempPath(), "RestoreSettings.bat");
-                File.WriteAllText(tempBatchPath, batchContent);
-
-                // 启动批处理文件
-                Process.Start(tempBatchPath);
-
-                // 退出应用
+                // 重启应用
                 RestartApplication(false);  // 恢复成功后重启应用，不保存设置
             }
             else
             {
                 // 用户选择取消
+                LogHelper.Info("用户取消了恢复操作。");
                 MessageBox.Show("用户操作返回：NO");
             }
         }
         catch (Exception ex)
         {
-            // 出现异常时，显示错误信息
+            LogHelper.Error($"RestoreSettingsFile 失败：{ex.Message}");
             MessageBox.Show($"回档失败：{ex.Message}");
         }
     }
+
     private void RestartApplication(bool saveSettings = true)
     {
         // 直接退出程序，不保存任何内容

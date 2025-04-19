@@ -19,6 +19,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using static StickyHomeworks.Controls.HomeworkControl;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace StickyHomeworks;
 
@@ -34,6 +35,7 @@ public partial class App : AppEx
     private MainWindow MainWindow; 
     private ToolStripMenuItem showMainWindowItem; // 定义菜单项
 
+    private System.Timers.Timer _memoryUsageTimer;
     public static string AppVersion => Assembly.GetExecutingAssembly().GetName().Version!.ToString();
 
     public App()
@@ -69,13 +71,86 @@ public partial class App : AppEx
 
     
 
-    protected override void OnExit(ExitEventArgs e)
+
+    public static class LogHelper
     {
-        base.OnExit(e);
-        // 在退出时释放控制台
+        // 颜色定义
+        private static readonly ConsoleColor[] Colors = new[]
+        {
+        ConsoleColor.Red,
+        ConsoleColor.Green,
+        ConsoleColor.Yellow,
+        ConsoleColor.Cyan,
+        ConsoleColor.Magenta,
+        ConsoleColor.Blue,
+        ConsoleColor.White
+    };
+
+        // 调试日志
+        public static void Debug(string message, params object[] args)
+        {
 #if DEBUG
-        FreeConsole();
+            WriteColoredLog("Debug", ConsoleColor.Cyan, message, args);
 #endif
+        }
+
+        // 信息日志
+        public static void Info(string message, params object[] args)
+        {
+            WriteColoredLog("Info", ConsoleColor.Green, message, args);
+        }
+
+        // 警告日志
+        public static void Warning(string message, params object[] args)
+        {
+            WriteColoredLog("Warning", ConsoleColor.Yellow, message, args);
+        }
+
+        // 错误日志
+        public static void Error(string message, params object[] args)
+        {
+            WriteColoredLog("Error", ConsoleColor.Red, message, args);
+        }
+
+        public static void Error(Exception exception)
+        {
+            WriteColoredLog("Error", ConsoleColor.Red, exception.ToString());
+        }
+        private static void WriteColoredLog(string level, ConsoleColor color, string message, params object[] args)
+        {
+            // 获取时间
+            DateTime now = DateTime.Now;
+
+            // 格式化
+            string formattedMessage = args.Length > 0 ? string.Format(message, args) : message;
+            string logEntry = $"[{now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {formattedMessage}";
+
+            // 设置颜色并输出
+            ConsoleColor originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(logEntry);
+            Console.ForegroundColor = originalColor;
+        }
+
+   
+        public static void PrintWelcomeMessage()
+        {
+            string welcomeMessage = "Sticky-attention";
+            for (int i = 0; i < welcomeMessage.Length; i++)
+            {
+                Console.ForegroundColor = Colors[i % Colors.Length];
+                Console.Write(welcomeMessage[i]);
+            }
+            Console.WriteLine();
+        }
+
+        // 打印内存使用情况
+        public static void PrintMemoryUsage()
+        {
+            Process currentProcess = Process.GetCurrentProcess();
+            long memoryUsage = currentProcess.PrivateMemorySize64;
+            WriteColoredLog("Memory", ConsoleColor.Blue, $"Memory usage: {memoryUsage / 1024 / 1024} MB");
+        }
     }
 
     void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -90,6 +165,14 @@ public partial class App : AppEx
 
     protected override void OnStartup(StartupEventArgs e)
     {
+
+        LogHelper.PrintWelcomeMessage();
+
+        StartMemoryMonitoring();
+
+        LogHelper.Info("Application started");
+
+
         //AppContext.SetSwitch(@"Switch.System.Windows.Controls.DoNotAugmentWordBreakingUsingSpeller", true);
         Mutex = new Mutex(true, "StickyHomeworks.Lock", out var createNew);
         base.OnStartup(e);
@@ -106,7 +189,7 @@ public partial class App : AppEx
         // 调试打开控制台
 #if DEBUG
         AllocConsole();
-        Console.WriteLine("调试模式");
+        LogHelper.Info($"调试模式");
 #else
           
                 FreeConsole();
@@ -136,8 +219,8 @@ public partial class App : AppEx
         GetService<MainWindow>().Show();
         base.OnStartup(e);
 
-        
-    
+        LogHelper.Info("Application started");
+
 
 
 
@@ -209,9 +292,31 @@ public partial class App : AppEx
     }
 
 
-private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    private void StartMemoryMonitoring()
+    {
+        _memoryUsageTimer = new System.Timers.Timer(5000); 
+        _memoryUsageTimer.Elapsed += (sender, e) => LogHelper.PrintMemoryUsage();
+        _memoryUsageTimer.AutoReset = true;
+        _memoryUsageTimer.Enabled = true;
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+        // 在退出时释放控制台
+#if DEBUG
+        FreeConsole();
+#endif
+        _memoryUsageTimer?.Stop();
+        _memoryUsageTimer?.Dispose();
+        LogHelper.Info("Application exited");
+    }
+
+
+    private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         e.Handled = true;
+        LogHelper.Error(e.Exception);
         var cw = GetService<CrashWindow>();
         cw.CrashInfo = e.Exception.ToString();
         cw.Exception = e.Exception;

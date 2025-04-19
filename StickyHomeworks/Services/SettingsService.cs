@@ -4,6 +4,8 @@ using StickyHomeworks.Models;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
+using StickyHomeworks;
+using static StickyHomeworks.App;
 
 namespace StickyHomeworks.Services;
 
@@ -95,7 +97,7 @@ public class SettingsService : ObservableRecipient, IHostedService
         }
         catch (IOException ex)
         {
-            Console.WriteLine("Error writing to file: " + ex.Message);
+            LogHelper.Error("Error writing to file: " + ex.Message);
         }
     }
 
