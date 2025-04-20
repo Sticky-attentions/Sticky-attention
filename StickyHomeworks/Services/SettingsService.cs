@@ -63,7 +63,7 @@ public class SettingsService : ObservableRecipient, IHostedService
             catch (Exception ex)
             {
                 LogHelper.Error($"创建默认设置文件时出错: {ex.Message}");
-                // 处理异常，比如抛出异常或通知用户
+               
             }
         }
         else
