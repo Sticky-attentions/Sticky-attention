@@ -704,7 +704,7 @@
 * 修复托盘退出时无法保存位置的问题。
 * 修复自动选择备份文件功能。
 * 修复Win键无法呼出开始菜单的问题。
-* 修复自动备份时的备份问题。                                    
+* 修复自动备份时的备份问题。                                   
                                 </mdxam:MarkdownScrollViewer>
                             </StackPanel>
                         </ScrollViewer>
