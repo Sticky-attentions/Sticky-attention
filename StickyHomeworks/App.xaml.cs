@@ -20,6 +20,7 @@ using System.Windows.Forms;
 using static StickyHomeworks.Controls.HomeworkControl;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.IO;
 
 namespace StickyHomeworks;
 
@@ -32,11 +33,26 @@ public partial class App : AppEx
 
     private NotifyIcon _notifyIcon;
 
-    private MainWindow MainWindow; 
+    private MainWindow MainWindow;
     private ToolStripMenuItem showMainWindowItem; // 定义菜单项
 
     private System.Timers.Timer _memoryUsageTimer;
     public static string AppVersion => Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_HIDE = 0;
+    private const int SW_SHOW = 5;
+
+    [DllImport("kernel32.dll")]
+    private static extern bool AllocConsole();
+
+    [DllImport("kernel32.dll")]
+    private static extern bool FreeConsole();
 
     public App()
     {
@@ -47,7 +63,7 @@ public partial class App : AppEx
             o.Dsn = "https://48c6921f7cf22181e09e16345b65fd77@o4508114075713536.ingest.us.sentry.io/4508114077417472";
             // When configuring for the first time, to see what the SDK is doing:
 #if DEBUG
-            o.Debug = true; 
+            o.Debug = true;
 #else
             o.Debug = false;
 #endif
@@ -60,31 +76,36 @@ public partial class App : AppEx
             o.AutoSessionTracking = true; // default: false
         });
 
+        // 根据调试或发布模式设置控制台窗口的显示状态
+#if DEBUG
+        AllocConsole();
+        IntPtr consoleWindow = GetConsoleWindow();
+        if (consoleWindow != IntPtr.Zero)
+        {
+            ShowWindow(consoleWindow, SW_SHOW);
+        }
+#else
+        IntPtr consoleWindow = GetConsoleWindow();
+        if (consoleWindow != IntPtr.Zero)
+        {
+            ShowWindow(consoleWindow, SW_HIDE);
+        }
+#endif
     }
-
-
-    [DllImport("kernel32.dll")]
-    private static extern bool AllocConsole();
-
-    [DllImport("kernel32.dll")]
-    private static extern bool FreeConsole();
-
-    
-
 
     public static class LogHelper
     {
         // 颜色定义
         private static readonly ConsoleColor[] Colors = new[]
         {
-        ConsoleColor.Red,
-        ConsoleColor.Green,
-        ConsoleColor.Yellow,
-        ConsoleColor.Cyan,
-        ConsoleColor.Magenta,
-        ConsoleColor.Blue,
-        ConsoleColor.White
-    };
+            ConsoleColor.Red,
+            ConsoleColor.Green,
+            ConsoleColor.Yellow,
+            ConsoleColor.Cyan,
+            ConsoleColor.Magenta,
+            ConsoleColor.Blue,
+            ConsoleColor.White
+        };
 
         // 调试日志
         public static void Debug(string message, params object[] args)
@@ -116,26 +137,37 @@ public partial class App : AppEx
         {
             WriteColoredLog("Error", ConsoleColor.Red, exception.ToString());
         }
+
         private static void WriteColoredLog(string level, ConsoleColor color, string message, params object[] args)
         {
-            // 获取时间
-            DateTime now = DateTime.Now;
+            try
+            {
+                // 获取时间
+                DateTime now = DateTime.Now;
 
-            // 格式化
-            string formattedMessage = args.Length > 0 ? string.Format(message, args) : message;
-            string logEntry = $"[{now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {formattedMessage}";
+                // 格式化
+                string formattedMessage = args.Length > 0 ? string.Format(message, args) : message;
+                string logEntry = $"[{now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {formattedMessage}";
 
-            // 设置颜色并输出
-            ConsoleColor originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-            Console.WriteLine(logEntry);
-            Console.ForegroundColor = originalColor;
+                // 设置颜色并输出
+                ConsoleColor originalColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                Console.WriteLine(logEntry);
+                Console.ForegroundColor = originalColor;
+            }
+            catch (IOException ex)
+            {
+                // 可以选择将错误记录到文件或其他存储
+                using (StreamWriter writer = new StreamWriter("error_log.txt", true))
+                {
+                    writer.WriteLine($"Error writing to console: {ex.Message}");
+                }
+            }
         }
 
-   
         public static void PrintWelcomeMessage()
         {
-            string welcomeMessage = "Sticky-attention";
+            string welcomeMessage = " \r\n \r\n ____  _ _      _ _   _ _   _             \r\n / ___ || | _(_) ___ | | ___   _ __ _ | | _ | | _ ___ _ __ | | _(_) ___ _ __  \r\n \\___ \\| __ | |/ __ | |/ / | | | _____ / _` | __ | __ / _ \\ '_ \\| __| |/ _ \\| '_ \\ \r\n ___) | | _ | | (__ |   <| | _ | | _____ | (_ | | | _ | || __ / | | | | _ | | (_) | | | |\r\n | ____ / \\__ | _ |\\___ | _ |\\_\\\\__, |      \\__,_ |\\__ |\\__\\___ | _ | | _ |\\__ | _ |\\___ /| _ | | _ |\r\n | ___ /                                                 \r\n";
             for (int i = 0; i < welcomeMessage.Length; i++)
             {
                 Console.ForegroundColor = Colors[i % Colors.Length];
@@ -155,25 +187,27 @@ public partial class App : AppEx
 
     void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        // Capture the exception to Sentry
         SentrySdk.CaptureException(e.Exception);
+        LogHelper.Error(e.Exception);
 
-        // If you want to avoid the application from crashing:
+        // 防止应用程序崩溃
         e.Handled = true;
-    }
 
+        // 显示错误窗口
+        var cw = GetService<CrashWindow>();
+        cw.CrashInfo = e.Exception.ToString();
+        cw.Exception = e.Exception;
+        cw.OpenWindow();
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
-
         LogHelper.PrintWelcomeMessage();
 
         StartMemoryMonitoring();
 
         LogHelper.Info("Application started");
 
-
-        //AppContext.SetSwitch(@"Switch.System.Windows.Controls.DoNotAugmentWordBreakingUsingSpeller", true);
         Mutex = new Mutex(true, "StickyHomeworks.Lock", out var createNew);
         base.OnStartup(e);
         AppCenter.Start("51d345d3-d94e-4398-8e9a-927d22c5849a", typeof(Analytics), typeof(Crashes));
@@ -181,19 +215,9 @@ public partial class App : AppEx
         {
             MessageBox.Show("应用已经在运行中，请勿重复启动第二个实例。");
             Environment.Exit(0);
-
         }
 
         base.OnStartup(e);
-
-        // 调试打开控制台
-#if DEBUG
-        AllocConsole();
-        LogHelper.Info($"调试模式");
-#else
-          
-                FreeConsole();
-#endif
 
         Host = Microsoft.Extensions.Hosting.Host.
             CreateDefaultBuilder().
@@ -221,9 +245,6 @@ public partial class App : AppEx
 
         LogHelper.Info("Application started");
 
-
-
-
         // 创建托盘图标
         _notifyIcon = new NotifyIcon
         {
@@ -241,10 +262,9 @@ public partial class App : AppEx
 
         // 添加“显示”菜单项，并为其单独绑定事件处理函数
         var showItem = new ToolStripMenuItem("隐藏或显示界面");
-        showItem.Click += ShowItem_Click; 
+        showItem.Click += ShowItem_Click;
         contextMenu.Items.Add(showItem);
 
-   
         contextMenu.Items.Add("设置", null, Appsettings);
         contextMenu.Items.Add("退出", null, ExitApplication);
 
@@ -254,8 +274,7 @@ public partial class App : AppEx
     private void ShowItem_Click(object sender, EventArgs e)
     {
         var menuItem = sender as ToolStripMenuItem;
-                MainWindow.ToggleWindowExpansion();
-
+        MainWindow.ToggleWindowExpansion();
     }
 
     private void Appsettings(object sender, EventArgs e)
@@ -263,38 +282,28 @@ public partial class App : AppEx
         var win = AppEx.GetService<SettingsWindow>();
         if (!win.IsOpened)
         {
-            // 如果设置窗口未开启，则开启它
             win.IsOpened = true;
             win.Show();
         }
         else
         {
-            // 如果设置窗口已开启但最小化，则恢复它
             if (win.WindowState == WindowState.Minimized)
             {
                 win.WindowState = WindowState.Normal;
             }
-
-            // 激活设置窗口
             win.Activate();
         }
     }
 
-
-
     // 退出逻辑
     private void ExitApplication(object sender, EventArgs e)
-{
+    {
         Current.Shutdown();
-        // _notifyIcon.Visible = false;
-        // _notifyIcon.Dispose();
-        //Current.Shutdown();
     }
-
 
     private void StartMemoryMonitoring()
     {
-        _memoryUsageTimer = new System.Timers.Timer(5000); 
+        _memoryUsageTimer = new System.Timers.Timer(5000);
         _memoryUsageTimer.Elapsed += (sender, e) => LogHelper.PrintMemoryUsage();
         _memoryUsageTimer.AutoReset = true;
         _memoryUsageTimer.Enabled = true;
@@ -303,15 +312,13 @@ public partial class App : AppEx
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
-        // 在退出时释放控制台
-#if DEBUG
-        FreeConsole();
-#endif
         _memoryUsageTimer?.Stop();
         _memoryUsageTimer?.Dispose();
         LogHelper.Info("Application exited");
+#if DEBUG
+        FreeConsole();
+#endif
     }
-
 
     private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
