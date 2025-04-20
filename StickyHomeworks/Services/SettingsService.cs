@@ -48,44 +48,28 @@ public class SettingsService : ObservableRecipient, IHostedService
 
     public async Task LoadSettingsSafeAsync()
     {
-        string settingsPath = "./Settings.json";
-        if (!File.Exists(settingsPath))
+        try
         {
-            // 如果文件不存在，创建默认的 Settings.json 文件
-            var defaultSettings = new Settings(); // 假设 Settings 是你的设置类
-            string json = JsonSerializer.Serialize(defaultSettings);
-
-            try
+            string settingsPath = "./Settings.json";
+            if (!File.Exists(settingsPath))
             {
-                await File.WriteAllTextAsync(settingsPath, json);
-                LogHelper.Info("创建了默认的 Settings.json 文件");
+                return;
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error($"创建默认设置文件时出错: {ex.Message}");
-              
-            }
-        }
-        else
-        {
-            try
-            {
-                string json = await File.ReadAllTextAsync(settingsPath);
-                Settings settings = JsonSerializer.Deserialize<Settings>(json);
 
-                if (settings != null)
+            string json = await File.ReadAllTextAsync(settingsPath);
+            Settings settings = JsonSerializer.Deserialize<Settings>(json);
+
+            if (settings != null)
+            {
+                lock (_lockObject)
                 {
-                    lock (_lockObject)
-                    {
-                        Settings = settings;
-                    }
+                    Settings = settings;
                 }
             }
-            catch (Exception ex)
-            {
-                LogHelper.Error($"加载设置文件时出错: {ex.Message}");
-                // 处理异常，比如使用默认设置或通知用户
-            }
+        }
+        catch (Exception ex)
+        {
+            // 记录异常信息
         }
     }
 
