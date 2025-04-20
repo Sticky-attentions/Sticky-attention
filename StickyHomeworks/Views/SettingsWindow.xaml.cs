@@ -3,6 +3,7 @@ using ElysiaFramework;
 using ElysiaFramework.Controls;
 using MaterialDesignThemes.Wpf;
 using StickyHomeworks.Models;
+using StickyHomeworks.Views;
 using StickyHomeworks.Services;
 using StickyHomeworks.ViewModels;
 using System.ComponentModel;
@@ -660,6 +661,8 @@ public partial class SettingsWindow : MyWindow
             }
         }
     }
+
+
 }
 
 
