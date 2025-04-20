@@ -233,12 +233,10 @@
                            Margin="0 0 0 4"/>
                 <TextBlock Text="正在开发/测试的不稳定功能，可能会出现Bug等问题，请谨慎使用。" TextWrapping="Wrap"
                            Margin="0 0 0 16"/>
-                <ely:SettingsCard IconGlyph="Eject" Header="选择回档文件"
-                       Description="回档按钮允许用户选择的json备份文件。"
-                       IsOn="{Binding Settings.Recover, Mode=TwoWay}" />
-                <TextBlock Margin="1" />
-                <ely:SettingsCard IconGlyph="lockoff" Header="锁定窗口"
-                       Description="（实验性）开启后主窗口会显示锁定按钮，点击后将锁定主界面，无法触摸和编辑作业。"
+
+                <!--<TextBlock Margin="1" />-->
+                <ely:SettingsCard IconGlyph="lockoff" Header="锁定窗口（实验性）"
+                       Description="开启后主窗口会显示锁定按钮，点击后将锁定主界面，无法触摸和编辑作业。"
                        IsOn="{Binding Settings.Lockwindow, Mode=TwoWay}" />
 
             </StackPanel>
@@ -692,18 +690,22 @@
 * 修改部分界面的协调性。
 * 修复托盘退出时无法保存位置的问题。
 * 修复自动选择备份文件功能。
+* 优化报错界面的复制功能。
 * 更新界面优化。
+* 修复Win键无法呼出开始菜单的问题。
+* 修复自动备份时的备份问题。
                 
 ##**【添加🚀】**
 * 添加选择表情界面（早期开发）。
 * 添加调试时的控制台，在发布时将自动关闭。
-* 添加托盘'显示与隐藏‘。
+* 添加托盘'显示与隐藏界面‘。
 * 添加应用初始化时进行对比当前窗口参数是否与setting一致。
 * 添加强制更新功能（实验性）。
 * 添加了锁定界面功能（实验性）。
 * 添加备份检测功能。  
 * 新增控制台LogHelper输出。
 * 启动应用时，调试窗口将每隔5秒打印一次内存使用量。
+* 添加备份界面，且备份功能可调整。                                    
                                 </mdxam:MarkdownScrollViewer>
                             </StackPanel>
                         </ScrollViewer>
@@ -714,39 +716,20 @@
                         <ScrollViewer>
                             <StackPanel Style="{StaticResource SettingsPageStackPanelStyle}">
                                 <ely:IconText Kind="AccountPending" Text="备份" Margin="0 0 0 8"/>
-
-
+                                
                                 <ely:SettingsCard IconGlyph="PenPlus" Header="编写作业时"
                                Description="编写作业时进行自动备份。"
-                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
+                               IsOn="{Binding Settings.Writbackup, Mode=TwoWay}" />
 
                                 <ely:SettingsCard IconGlyph="TouchReading" Header="启动应用时"
                                Description="启动时进行自动备份。"
-                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
-
-                                <ely:IconText Kind="Cloud" Text="WebDav" Margin="0 0 0 8"/>
-
-                                <ely:SettingsCard IconGlyph="Cloud" Header="启用WebDav" 
-                               Description="启用后可以使用该功能。"
-             IsOn="{Binding Settings.IsBottom, Mode=TwoWay}" />
+                               IsOn="{Binding Settings.Backupst, Mode=TwoWay}" />
+                                
+                                <ely:SettingsCard IconGlyph="Eject" Header="选择回档文件"
+                       Description="回档时允许用户自主选择备份文件。"
+                       IsOn="{Binding Settings.Recover, Mode=TwoWay}" />
 
 
-
-                                <ely:SettingsCard IconGlyph="Key" Header="WebDav账户"
-    Description="首次使用该功能时，需要填写服务商链接和提供给您的账户和密码。">
-                                    <ely:SettingsCard.Switcher>
-                                        <DockPanel Width="60">
-                                            <Button Content="{materialDesign:PackIcon Edit, Size=20}" ToolTip="编辑" 
-                 Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"
-                 CommandParameter="{StaticResource ExitConfirm}"/>
-                                        </DockPanel>
-                                    </ely:SettingsCard.Switcher>
-                                </ely:SettingsCard>
-
-                                <ely:SettingsCard IconGlyph="CloudUpload" Header="自动上传截图"
-                               Description="每天自动在您设置的时间点截图并上传WebDav。"
-                               IsOn="{Binding Settings.IsBottom, Mode=TwoWay}"
-                               />
 
                             </StackPanel>
                         </ScrollViewer>
@@ -809,7 +792,7 @@
                                         Style="{StaticResource MaterialDesignFlatButton}">
                                     <ely:IconText Kind="Add" Text="添加标签" />
                                 </Button>
-                                <TextBlock Text="快捷插入" VerticalAlignment="Center" />
+                                <TextBlock Text="快捷标签" VerticalAlignment="Center" />
                             </DockPanel>
                             <ListBox Grid.Row="1" ItemsSource="{Binding Settings.Tags}"
                                      SelectionMode="Single"

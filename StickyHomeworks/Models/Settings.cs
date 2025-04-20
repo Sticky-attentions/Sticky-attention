@@ -33,6 +33,8 @@ public class Settings : ObservableRecipient
     private double _windowHeight = 800;
     private bool _lockwindow = false;
     private bool _isBottom = true;
+    private bool _backupst = true;
+    private bool _writbackup = true;
     private bool _clean = true;
     private bool _lsclearances = false;
     private bool _recover = false;
@@ -148,10 +150,10 @@ public class Settings : ObservableRecipient
             OnPropertyChanged();
         
         }
-
-
-
     }
+
+
+
     public string Title
     {
         get => _title;
@@ -162,6 +164,31 @@ public class Settings : ObservableRecipient
             OnPropertyChanged();
         }
     }
+
+    public bool Writbackup
+    {
+        get => _backupst;
+        set
+        {
+            if (value == _backupst) return;
+            _backupst = value;
+            OnPropertyChanged();
+        }
+    }
+
+
+    public bool Backupst
+    {
+        get => _backupst;
+            set
+        {
+            if (value == _backupst) return;
+            _backupst = value;
+            OnPropertyChanged();
+
+        }
+    }
+
 
     public bool lsclearances
     {

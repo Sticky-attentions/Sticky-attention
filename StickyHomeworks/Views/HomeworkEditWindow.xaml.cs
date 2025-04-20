@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -294,25 +295,34 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
         EditingFinished?.Invoke(this, EventArgs.Empty);
         BackupSettingsJson();
         AppEx.GetService<ProfileService>().SaveProfile();
-        Close();
+        this.Hide();
     }
 
-    private void BackupSettingsJson()
+    private async Task BackupSettingsJson()
     {
-        // 定义备份文件夹路径
-        string folderName = "SA-AutoBackup";
-        string settings_folderName = "Settings-Backups";
-        string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-        string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
-
-        // 源文件路径
-        string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
-
-        try
+        await Task.Delay(3000);
+        if (SettingsService.Settings.Writbackup)
         {
-            // 确保源文件存在
-            if (File.Exists(sourceFilePath))
+
+            try
             {
+                // 定义备份文件夹路径
+                string folderName = "SA-AutoBackup";
+                string settings_folderName = "Settings-Backups";
+                string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
+
+                // 源文件路径
+                string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+
+                // 确保源文件存在
+                if (!File.Exists(sourceFilePath))
+                {
+                    LogHelper.Warning("Settings.json 文件不存在");
+                    MessageBox.Show("Settings.json 文件不存在");
+                    return;
+                }
+
                 // 生成基于时间戳的文件夹名称
                 string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
                 string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
@@ -329,21 +339,61 @@ public partial class HomeworkEditWindow : Window, INotifyPropertyChanged
                 // 复制文件到备份文件夹
                 File.Copy(sourceFilePath, backupFilePath, true);
 
+                // 验证备份文件的完整性
+                if (!ValidateBackupFile(backupFilePath))
+                {
+                    LogHelper.Error("setting文件已损坏。");
+                    MessageBox.Show("setting文件已损坏。");
+                    return;
+                }
+
                 LogHelper.Info($"Settings.json 已成功备份到: {backupFilePath}");
             }
-            else
+            catch (Exception ex)
             {
-                LogHelper.Warning("Settings.json 文件不存在");
+                LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
+                MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
             }
+        }
+        else
+        {
+            LogHelper.Warning("Writbackup为false，备份被终止!");
+        }
+
+    }
+
+    private bool ValidateBackupFile(string backupFilePath)
+    {
+        try
+        {
+            // 检查文件是否存在
+            if (!File.Exists(backupFilePath))
+            {
+                return false;
+            }
+
+            // 检查文件大小是否为0
+            if (new FileInfo(backupFilePath).Length == 0)
+            {
+                return false;
+            }
+
+            // 检查文件内容是否有效
+            using (StreamReader reader = new StreamReader(backupFilePath))
+            {
+                string content = reader.ReadToEnd();
+                // 尝试解析 JSON 内容
+                JsonDocument.Parse(content);
+            }
+
+            return true;
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
-            LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
+            LogHelper.Error($"验证备份文件 {backupFilePath} 失败：{ex.Message}");
+            return false;
         }
     }
-
-
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
