@@ -21,6 +21,7 @@ using DragEventArgs = System.Windows.DragEventArgs;
 using StickyHomeworks;
 using static StickyHomeworks.App;
 using System.Text.Json;
+using System.Threading.Tasks;
 namespace StickyHomeworks
 {
     /// <summary>
@@ -736,7 +737,7 @@ namespace StickyHomeworks
             // 初始化一个文件保存对话框组件
             var dialog = new System.Windows.Forms.SaveFileDialog()
             {
-                // 设置对话框中显示的文件类型过滤器，这里只允许保存 PNG 格式的图片
+                // 设置对话框中显示的文件类型过滤器
                 Filter = "图片 (*.png)|*.png"
             };
 
@@ -744,7 +745,7 @@ namespace StickyHomeworks
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             dialog.FileName = $"Export_{timestamp}.png"; // 自动填写文件名
 
-            // 显示文件保存对话框，并检查用户是否点击了“保存”按钮
+            // 显示文件保存对话框，并检查是否点击了“保存”按钮
             if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
             {
                 goto done;
@@ -767,8 +768,8 @@ namespace StickyHomeworks
             var listViewHeight = MainListView.ActualHeight;
 
             // 设置背景的尺寸，比 MainListView 的内容稍大一些
-            var backgroundWidth = listViewWidth * scale + 100; // 水平方向增加 100 像素
-            var backgroundHeight = listViewHeight * scale + 100; // 垂直方向增加 100 像素
+            var backgroundWidth = listViewWidth * scale + 100; 
+            var backgroundHeight = listViewHeight * scale + 100; 
 
             // 创建一个新的绘图视觉对象，用于绘制背景
             var backgroundVisual = new DrawingVisual();
@@ -839,9 +840,12 @@ namespace StickyHomeworks
             // 设置视图模型的 IsWorking 属性为 false，表示导出操作已完成
             ViewModel.IsWorking = false;
         }
+
+
+
         private async void AutoExport()
         {
-            // 如果窗口为 null 或者窗口的宽度或高度小于最小值，直接返回（看来没什么用）
+            // 如果窗口为 null 或者窗口的宽度或高度小于最小值，直接返回
             if (Application.Current.MainWindow == null ||
                 Application.Current.MainWindow.ActualWidth < 1 ||
                 Application.Current.MainWindow.ActualHeight < 1)
@@ -853,7 +857,8 @@ namespace StickyHomeworks
 
             // 文件夹名称
             string folderName = "SA-AutoBackup";
-            string cfolderName = System.DateTime.Now.ToString("d").Replace('/', '-');
+            // 使用 “yyyy-MM-dd” 格式作为文件夹名称，以每天创建一个新文件夹
+            string cfolderName = System.DateTime.Now.ToString("yyyy-MM-dd");
             string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
 
             bool hasErrorOccurred = false;
@@ -861,7 +866,6 @@ namespace StickyHomeworks
             {
                 // 组合目录，并确保备份文件夹存在
                 string folderPath = Path.Combine(currentDirectory, folderName, cfolderName);
-                string apifolderPath = Path.Combine(currentDirectory, folderName);
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
@@ -879,42 +883,53 @@ namespace StickyHomeworks
                 // 等待一个任务调度周期，确保 UI 操作完成后再进行后续操作
                 await Task.Yield();
 
-           
-
                 // 文件基本名称
-                string baseFileName = DateTime.Now.ToString("t").Replace(':', '-');
-                string apibaseFileName = "latest";
+                string baseFileName = DateTime.Now.ToString("HH-mm-ss-fff");
                 string fileExtension = ".png";
 
                 string newFileName = $"{baseFileName}{fileExtension}";
-                string apiFileName = $"{apibaseFileName}{fileExtension}";
                 string filePath = Path.Combine(folderPath, newFileName);
-                string apifilePath = Path.Combine(apifolderPath, apiFileName);
+
+                // 获取 MainListView 的实际宽度和高度
+                double listViewWidth = MainListView.ActualWidth;
+                double listViewHeight = MainListView.ActualHeight;
+                var s = SettingsService.Settings.Scale;
 
                 // 创建一个新的绘图视觉对象
                 var visual = new DrawingVisual();
-                var s = SettingsService.Settings.Scale;
 
                 // 打开视觉对象的渲染上下文
                 using (var context = visual.RenderOpen())
                 {
+                    // 设置背景的尺寸，比 MainListView 的内容稍大一些
+                    double backgroundWidth = listViewWidth * s + 100;
+                    double backgroundHeight = listViewHeight * s + 100;
+
+                    // 使用 FindResource 获取背景画刷（假设 MaterialDesignPaper 是一个 Brush 资源）
+                    var bg = (System.Windows.Media.Brush)FindResource("MaterialDesignPaper");
+
+                    // 在渲染上下文中绘制背景
+                    var backgroundRect = new Rect(0, 0, backgroundWidth, backgroundHeight);
+                    context.DrawRectangle(bg, null, backgroundRect);
+
+                    // 设置 MainListView 的画刷
                     var brush = new VisualBrush(MainListView)
                     {
                         Stretch = Stretch.None  // 设置画刷的拉伸模式为 None，即不拉伸
                     };
 
-                    var bg = (System.Windows.Media.Brush)FindResource("MaterialDesignPaper");
-
-                    // 在渲染上下文中绘制背景
-                    context.DrawRectangle(bg, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
+                    // 计算截图内容在背景上的位置（居中）
+                    double contentLeft = (backgroundWidth - listViewWidth * s) / 2;
+                    double contentTop = (backgroundHeight - listViewHeight * s) / 2;
+                    var contentRect = new Rect(contentLeft, contentTop, listViewWidth * s, listViewHeight * s);
 
                     // 在渲染上下文中绘制 MainListView 的内容
-                    context.DrawRectangle(brush, null, new Rect(0, 0, MainListView.ActualWidth * s, MainListView.ActualHeight * s));
+                    context.DrawRectangle(brush, null, contentRect);
                 }
 
-                // 获取有效的宽度和高度
-                int width = Math.Max(1, (int)(MainListView.ActualWidth * s));  // 保证最小宽度为1
-                int height = Math.Max(1, (int)(ActualHeight * s));  // 保证最小高度为1
+                // 获取有效的宽度和高度，确保最小尺寸
+                int width = Math.Max(1, (int)(listViewWidth * s + 100));
+                int height = Math.Max(1, (int)(listViewHeight * s + 100));
 
                 // 创建一个目标为位图的渲染对象，用于将视觉对象转换为位图
                 var bitmap = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
@@ -923,22 +938,16 @@ namespace StickyHomeworks
                 // 创建 PNG 位图编码器
                 var encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                var encoder2 = new PngBitmapEncoder();
-                encoder2.Frames.Add(BitmapFrame.Create(bitmap));
 
                 // 尝试将编码后的 PNG 数据保存到文件中
                 using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
                 {
                     encoder.Save(stream);
                 }
-                using (var stream2 = new FileStream(apifilePath, FileMode.Create, FileAccess.Write))
-                {
-                    encoder2.Save(stream2);
-                }
             }
             catch (Exception ex)
             {
-                // 如果发生异常，表示有困难出现，设置 IsWorking 为 true 来表示有问题
+                // 如果发生异常，设置 hasErrorOccurred 为 true
                 hasErrorOccurred = true;
                 ViewModel.IsWorking = true;
                 // 显示失败信息
@@ -947,11 +956,10 @@ namespace StickyHomeworks
             }
             finally
             {
-                // 如果没有发生错误，或者任务完成，确保 IsWorking 为 false
+                // 如果没有发生错误，确保 IsWorking 为 false
                 if (!hasErrorOccurred)
                 {
-                    // 延时操作，防止频繁更新
-                    await Task.Delay(100);  // 可调整延迟时间
+                    await Task.Delay(100);  // 延时操作，防止频繁更新
                     ViewModel.IsWorking = false;
                 }
             }
@@ -1158,58 +1166,68 @@ namespace StickyHomeworks
             ViewModel.IsClosing = true;
             Close();
         }
-        private void BackupSettingsJson()
+        private async Task BackupSettingsJson()
         {
-            try
+            await Task.Delay(3000);
+            if (SettingsService.Settings.Backupst)
             {
-                // 定义备份文件夹路径
-                string folderName = "SA-AutoBackup";
-                string settings_folderName = "Settings-Backups";
-                string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-                string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
 
-                // 源文件路径
-                string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
-
-                // 确保源文件存在
-                if (!File.Exists(sourceFilePath))
+                try
                 {
-                    LogHelper.Warning("Settings.json 文件不存在");
-                    MessageBox.Show("Settings.json 文件不存在");
-                    return;
+                    // 定义备份文件夹路径
+                    string folderName = "SA-AutoBackup";
+                    string settings_folderName = "Settings-Backups";
+                    string currentDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                    string backupBaseDirectory = Path.Combine(currentDirectory, folderName, settings_folderName);
+
+                    // 源文件路径
+                    string sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+
+                    // 确保源文件存在
+                    if (!File.Exists(sourceFilePath))
+                    {
+                        LogHelper.Warning("Settings.json 文件不存在");
+                        MessageBox.Show("Settings.json 文件不存在");
+                        return;
+                    }
+
+                    // 生成基于时间戳的文件夹名称
+                    string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
+                    string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
+
+                    // 如果备份文件夹不存在，则创建
+                    if (!Directory.Exists(backupDirectory))
+                    {
+                        Directory.CreateDirectory(backupDirectory);
+                    }
+
+                    // 定义备份文件路径（保持文件名不变）
+                    string backupFilePath = Path.Combine(backupDirectory, "Settings.json");
+
+                    // 复制文件到备份文件夹
+                    File.Copy(sourceFilePath, backupFilePath, true);
+
+                    // 验证备份文件的完整性
+                    if (!ValidateBackupFile(backupFilePath))
+                    {
+                        LogHelper.Error("setting文件已损坏。");
+                        MessageBox.Show("setting文件已损坏。");
+                        return;
+                    }
+
+                    LogHelper.Info($"Settings.json 已成功备份到: {backupFilePath}");
                 }
-
-                // 生成基于时间戳的文件夹名称
-                string timestampFolderName = DateTime.Now.ToString("yyyyMMddHHmmss");
-                string backupDirectory = Path.Combine(backupBaseDirectory, timestampFolderName);
-
-                // 如果备份文件夹不存在，则创建
-                if (!Directory.Exists(backupDirectory))
+                catch (Exception ex)
                 {
-                    Directory.CreateDirectory(backupDirectory);
+                    LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
+                    MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
                 }
-
-                // 定义备份文件路径（保持文件名不变）
-                string backupFilePath = Path.Combine(backupDirectory, "Settings.json");
-
-                // 复制文件到备份文件夹
-                File.Copy(sourceFilePath, backupFilePath, true);
-
-                // 验证备份文件的完整性
-                if (!ValidateBackupFile(backupFilePath))
-                {
-                    LogHelper.Error("setting文件已损坏。");
-                    MessageBox.Show("setting文件已损坏。");
-                    return;
-                }
-
-                LogHelper.Info($"Settings.json 已成功备份到: {backupFilePath}");
             }
-            catch (Exception ex)
+            else
             {
-                LogHelper.Error($"无法备份 Settings.json: {ex.Message}");
-                MessageBox.Show($"无法备份 Settings.json: {ex.Message}");
+                LogHelper.Warning("Backupst为false，备份被终止!");
             }
+            
         }
 
         private bool ValidateBackupFile(string backupFilePath)
