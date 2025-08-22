@@ -1,7 +1,7 @@
 <div align="center">
 
 ![banner](image/banner.jpg)
-
+  
 ![Update Status](https://img.shields.io/badge/真新手出道-Auqamarin)<br/>
 [![stars](https://img.shields.io/github/stars/Sticky-attention/Sticky-attention?label=Stars)](https://github.com/Sticky-attention/Sticky-attention)
 [![Downloads](https://img.shields.io/github/downloads/Sticky-attention/Sticky-attention/total?style=social&label=下载量&logo=github)](https://github.com/Sticky-attention/Sticky-attention/releases/latest)
